@@ -5,10 +5,10 @@ import { createPlayerGame, getPlayersInGame, removePlayerFromGame } from '../con
 const router = Router();
 
 // Route to create the player-game relation
-router.post('/player-games', authenticateJWT, createPlayerGame);
+router.post('/', authenticateJWT, createPlayerGame);
 // Route to get players associated with a game
-router.get('/player-games/:gameId', authenticateJWT, getPlayersInGame);
+router.get('/:gameId', authenticateJWT, getPlayersInGame);
 // Route to remove player from game (soft delete relation)
-router.delete('/player-games/:playerId/:gameId', authenticateJWT, removePlayerFromGame);
+router.delete('/:playerId/:gameId', authenticateJWT, removePlayerFromGame);
 
 export default router;

@@ -5,7 +5,7 @@ import { authenticateJWT } from '../middleware/authMiddleware';
 const router = express.Router();
 
 // Apply authenticateJWT middleware to game routes that require authentication
-router.get('/games', authenticateJWT, getAllGames);
+router.get('/', authenticateJWT, getAllGames);
 router.post('/', authenticateJWT, createGame); // Create game
 router.put('/:id', authenticateJWT, updateGame); // Update game
 router.delete('/:id', authenticateJWT, deleteGame); // Soft delete game

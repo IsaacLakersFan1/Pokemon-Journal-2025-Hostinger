@@ -13,7 +13,7 @@ const loginSchema = z.object({
 
   const signupSchema = z.object({
     email: z.string().email(),
-    username: z.string().min(3),
+    // username: z.string().min(3),
     password: z.string().min(6),
     firstName: z.string().min(3),
     lastName: z.string().min(3)
@@ -25,7 +25,7 @@ const signup = async (req: Request, res: Response): Promise<void> => {
         res.status(400).json({ message: "Invalid input" });
         return;
     }
-    const { email, username, password, firstName, lastName } = result.data;
+    const { email,  password, firstName, lastName } = result.data;
     try {
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
@@ -33,7 +33,7 @@ const signup = async (req: Request, res: Response): Promise<void> => {
           return;
         }
 
-        const existingUsername = await prisma.user.findUnique({ where: { username } });
+        const existingUsername = await prisma.user.findUnique({ where: { email } });
         if (existingUsername) {
           res.status(400).json({ message: "Username already in use" });
           return;
@@ -44,7 +44,7 @@ const signup = async (req: Request, res: Response): Promise<void> => {
         const newUser = await prisma.user.create({
             data: { 
                 email, 
-                username,
+                username: email,
                 password: hashedPassword, // Keep using password column for now
                 passwordHash: hashedPassword, // Also store in passwordHash
                 firstName, 
@@ -76,18 +76,18 @@ const login = async (req: Request, res: Response): Promise<void> => {
         });
 
         if (!user) {
-            res.status(400).json({ message: "Invalid username or password" });
+            res.status(400).json({ message: "Invalid email or password" });
             return;
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.passwordHash || user.password);
         if (!isPasswordValid) {
-            res.status(400).json({ message: "Invalid username or password" });
+            res.status(400).json({ message: "Invalid email or password" });
             return;
         }
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
-        res.cookie("tokenBasketball", token, {
+        res.cookie("tokenPokemonJournal", token, {
             httpOnly: true,
             secure: false,
             sameSite: "lax",
@@ -103,7 +103,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
 
 const me = async (req: Request, res: Response): Promise<void> => {
     try {
-        const token = req.cookies.tokenBasketball;
+        const token = req.cookies.tokenPokemonJournal;
         
         if (!token) {
             res.status(401).json({ message: "No token provided" });
@@ -136,7 +136,7 @@ const me = async (req: Request, res: Response): Promise<void> => {
 
 const logout = async (req: Request, res: Response): Promise<void> => {
     try {
-        res.clearCookie("tokenBasketball");
+        res.clearCookie("tokenPokemonJournal");
         res.status(200).json({ message: "Logout successful" });
     } catch (error) {
         console.error(error);

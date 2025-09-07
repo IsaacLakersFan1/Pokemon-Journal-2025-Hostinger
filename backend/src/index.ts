@@ -36,12 +36,12 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/admin/user", adminUserRoutes);
 app.use("/api/settings", settingsRoutes);
-app.use("/api", gameRoutes);
-app.use("/api", playerRoutes);
-app.use("/api", playerGameRoutes);
-app.use("/api", pokemonRoutes);
-app.use("/api", eventRoutes);
-app.use("/api", utilsRoutes);
+app.use("/api/games", gameRoutes);
+app.use("/api/players", playerRoutes);
+app.use("/api/player-games", playerGameRoutes);
+app.use("/api/pokemon", pokemonRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/utils", utilsRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port http://localhost:${port}`);

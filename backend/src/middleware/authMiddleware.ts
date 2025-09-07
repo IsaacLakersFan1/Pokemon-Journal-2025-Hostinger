@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 
 
 export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  const token = req.cookies.tokenBasketball;
+  const token = req.cookies.tokenPokemonJournal;
   const JWT_SECRET = process.env.JWT_SECRET;
 
 

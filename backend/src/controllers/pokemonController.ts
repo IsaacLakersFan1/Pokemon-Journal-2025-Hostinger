@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import prisma from "../utils/prismaClient";
 import multer from "multer";
 import path from "path";
+import fs from 'fs';
+import csv from 'csv-parser';
 import { 
   excludeDeletedPokemon, 
   excludeDeletedEvent,
@@ -143,6 +145,37 @@ export const getAllPokemon = async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     console.error('Error fetching Pokémon:', error);
     res.status(500).json({ error: 'Failed to fetch Pokémon' });
+  }
+};
+
+// Search Pokémon by part of their name
+export const searchPokemon = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const searchTerm = req.query.searchTerm;
+    console.log('searchPokemon called with searchTerm:', searchTerm);
+
+    if (typeof searchTerm === 'string') {
+      const pokemons = await prisma.pokemon.findMany({
+        where: {
+          name: { contains: searchTerm.toLowerCase() }, // Case-insensitive search
+          ...excludeDeletedPokemon(), // Exclude soft-deleted Pokémon
+        },
+        select: {
+          id: true,
+          name: true,
+          form: true,
+          image: true,
+        },
+      });
+
+      console.log('Pokemon found:', pokemons.length);
+      res.json(pokemons);
+    } else {
+      res.status(400).json({ error: 'Invalid search term' });
+    }
+  } catch (error) {
+    console.error('Error searching Pokémon:', error);
+    res.status(500).json({ error: 'Failed to search Pokémon' });
   }
 };
 
@@ -363,4 +396,69 @@ const calculateEffectiveness = (type1: string, type2?: string | null) => {
   });
 
   return effectiveness;
+};
+
+// Sync Pokémon from CSV file
+export const syncPokemonFromCSV = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const csvPath = path.join(__dirname, '../../prisma/pokemondb.csv');
+    
+    if (!fs.existsSync(csvPath)) {
+      res.status(404).json({ error: 'CSV file not found' });
+      return;
+    }
+
+    const pokemonData: any[] = [];
+    
+    // Read CSV file
+    fs.createReadStream(csvPath)
+      .pipe(csv())
+      .on('data', (row) => {
+        pokemonData.push({
+          id: parseInt(row.id),
+          nationalDex: parseInt(row.nationalDex),
+          name: row.name,
+          form: row.form || null,
+          type1: row.type1,
+          type2: row.type2 || null,
+          total: parseInt(row.total),
+          hp: parseInt(row.hp),
+          attack: parseInt(row.attack),
+          defense: parseInt(row.defense),
+          specialAttack: parseInt(row.specialAttack),
+          specialDefense: parseInt(row.specialDefense),
+          speed: parseInt(row.speed),
+          generation: parseInt(row.generation),
+          image: row.image || null,
+          shinyImage: row.shinyImage || null,
+        });
+      })
+      .on('end', async () => {
+        try {
+          // Clear existing Pokémon data
+          await prisma.pokemon.deleteMany({});
+          
+          // Insert new Pokémon data
+          const result = await prisma.pokemon.createMany({
+            data: pokemonData,
+          });
+
+          res.status(200).json({ 
+            message: 'Pokémon synchronized successfully',
+            count: result.count,
+            total: pokemonData.length
+          });
+        } catch (error) {
+          console.error('Error inserting Pokémon data:', error);
+          res.status(500).json({ error: 'Failed to insert Pokémon data' });
+        }
+      })
+      .on('error', (error) => {
+        console.error('Error reading CSV file:', error);
+        res.status(500).json({ error: 'Failed to read CSV file' });
+      });
+  } catch (error) {
+    console.error('Error syncing Pokémon:', error);
+    res.status(500).json({ error: 'Failed to sync Pokémon' });
+  }
 };

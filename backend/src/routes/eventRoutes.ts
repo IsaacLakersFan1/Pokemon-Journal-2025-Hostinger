@@ -14,27 +14,27 @@ import { authenticateJWT } from '../middleware/authMiddleware';
 const router = Router();
 
 // POST: Create a new event (register a Pokémon event)
-router.post('/events', authenticateJWT, createEvent);
+router.post('/', authenticateJWT, createEvent);
 
 // GET: Search Pokémon by name
 router.get('/pokemon/search', searchPokemon);
 
 // GET: Get all events (optionally filtered by gameId)
-router.get('/events', authenticateJWT, getAllEvents);
+router.get('/', authenticateJWT, getAllEvents);
 
 // GET: Get events by Game ID
-router.get('/events/game/:gameId', authenticateJWT, getEventsByGameId);
+router.get('/game/:gameId', authenticateJWT, getEventsByGameId);
 
 // PUT: Update event status
-router.put('/events/:eventId/status', authenticateJWT, updateEventStatus);
+router.put('/:eventId/status', authenticateJWT, updateEventStatus);
 
 // PUT: Update event attributes (isShiny, isChamp)
-router.put('/events/:eventId/attributes', authenticateJWT, updateEventAttributes);
+router.put('/:eventId/attributes', authenticateJWT, updateEventAttributes);
 
 // DELETE: Soft delete event by ID
-router.delete('/events/:eventId', authenticateJWT, deleteEvent);
+router.delete('/:eventId', authenticateJWT, deleteEvent);
 
 // POST: Restore soft-deleted event by ID
-router.post('/events/:eventId/restore', authenticateJWT, restoreEvent);
+router.post('/:eventId/restore', authenticateJWT, restoreEvent);
 
 export default router;

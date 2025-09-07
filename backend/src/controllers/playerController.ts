@@ -194,6 +194,8 @@ export const restorePlayer = async (req: AuthenticatedRequest, res: Response): P
 export const getPlayers = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const userId = req.user?.userId;
 
+  console.log('getPlayers called with userId:', userId);
+
   if (!userId) {
     res.status(400).json({ error: 'User not authenticated' });
     return;
@@ -217,6 +219,7 @@ export const getPlayers = async (req: AuthenticatedRequest, res: Response): Prom
       },
     });
 
+    console.log('Players found:', players.length);
     res.status(200).json(players);
   } catch (error) {
     console.error('Error fetching players:', error);

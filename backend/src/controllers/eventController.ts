@@ -44,6 +44,7 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
 export const searchPokemon = async (req: Request, res: Response): Promise<void> => {
   try {
     const searchTerm = req.query.searchTerm;
+    console.log('searchPokemon called with searchTerm:', searchTerm);
 
     if (typeof searchTerm === 'string') {
       const pokemons = await prisma.pokemon.findMany({
@@ -59,6 +60,7 @@ export const searchPokemon = async (req: Request, res: Response): Promise<void> 
         },
       });
 
+      console.log('Pokemon found:', pokemons.length);
       res.json(pokemons);
     } else {
       res.status(400).json({ error: 'Invalid search term' });
