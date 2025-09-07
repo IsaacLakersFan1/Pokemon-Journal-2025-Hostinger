@@ -43,7 +43,7 @@ export function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <DashboardHeader gameId={gameId} />
+      <DashboardHeader />
       
       <div className="space-y-8">
         <div className="flex justify-between items-center">

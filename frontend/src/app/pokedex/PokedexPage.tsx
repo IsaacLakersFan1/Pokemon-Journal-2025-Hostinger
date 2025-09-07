@@ -10,10 +10,8 @@ import { PokedexErrorScreen } from "./components/PokedexErrorScreen";
 
 export function PokedexPage() {
   const {
-    pokemons,
     filteredPokemons,
     searchTerm,
-    setSearchTerm,
     selectedPokemon,
     typeEffectiveness,
     modalState,

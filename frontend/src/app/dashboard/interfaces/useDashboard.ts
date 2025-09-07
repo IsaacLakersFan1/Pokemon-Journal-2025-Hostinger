@@ -1,4 +1,4 @@
-import { Player, Event, Pokemon, CreateEventRequest } from "./Dashboard";
+import { Player, Event, Pokemon } from "./Dashboard";
 
 export interface UseDashboardReturn {
   // State

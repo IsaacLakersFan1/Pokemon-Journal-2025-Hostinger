@@ -3,7 +3,7 @@ import axios from "axios";
 import API_URL from "@/utils/apiConfig";
 import { toastError } from "@/hooks/useToastError";
 import { UseGlobalPlayersReturn } from "../interfaces/useGlobalPlayers";
-import { GlobalPlayer, GlobalPlayerGameResponse } from "../interfaces/GlobalPlayers";
+import { GlobalPlayer } from "../interfaces/GlobalPlayers";
 
 export function useGlobalPlayers(): UseGlobalPlayersReturn {
   const [players, setPlayers] = useState<GlobalPlayer[]>([]);

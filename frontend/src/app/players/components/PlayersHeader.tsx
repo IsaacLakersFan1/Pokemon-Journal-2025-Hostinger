@@ -1,8 +1,4 @@
-interface PlayersHeaderProps {
-  gameId: string;
-}
-
-export function PlayersHeader({ gameId }: PlayersHeaderProps) {
+export function PlayersHeader() {
   return (
     <div className="mb-8">
       <h1 className="text-4xl font-extrabold text-gray-800">Entrenadores</h1>

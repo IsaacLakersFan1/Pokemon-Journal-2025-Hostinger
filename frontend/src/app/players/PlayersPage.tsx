@@ -23,7 +23,7 @@ export function PlayersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PlayersHeader gameId={gameId} />
+      <PlayersHeader />
       <PlayersList players={players} gameId={gameId} />
     </div>
   );
