@@ -251,11 +251,15 @@ export const getTrainerStats = async (req: Request, res: Response): Promise<void
     }
 
     // Fetch player events, optionally filter by gameId
+    // Only include events from non-deleted games
     const events = await prisma.event.findMany({
       where: {
         playerId: parseInt(playerId),
         ...(gameId ? { gameId: parseInt(gameId as string) } : {}),
         ...excludeDeletedEvent(),
+        game: {
+          deletedAt: null // Only include events from non-deleted games
+        }
       },
       include: {
         pokemon: true,
@@ -330,13 +334,29 @@ export const getPokemonsStats = async (req: Request, res: Response): Promise<voi
 
   try {
     // Fetch all non-deleted Pokémon with their events (and shiny status) for the given playerId
+    // Exclude Pokémon that have events in soft-deleted games
     const pokemons = await prisma.pokemon.findMany({
-      where: excludeDeletedPokemon(),
+      where: {
+        ...excludeDeletedPokemon(),
+        // Only include Pokémon that have events in non-deleted games
+        events: {
+          some: {
+            playerId: playerId,
+            ...excludeDeletedEvent(),
+            game: {
+              deletedAt: null // Only include events from non-deleted games
+            }
+          }
+        }
+      },
       include: {
         events: {
           where: {
             playerId: playerId, // Only include events for the given playerId
             ...excludeDeletedEvent(),
+            game: {
+              deletedAt: null // Only include events from non-deleted games
+            }
           },
           select: {
             isShiny: true, // Select shiny status

@@ -144,7 +144,7 @@ export function InformationPokedexCard({
 }: InformationPokedexCardProps) {
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+      <DialogContent className="max-w-[100vw] sm:max-w-[50vw] max-h-[95vh] overflow-y-auto">
         <DialogHeader className="text-center pb-4">
           <DialogTitle className="text-4xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             {pokemon.name}
