@@ -21,7 +21,7 @@ export interface Pokemon {
 
 export interface Event {
   id: number;
-  pokemonId: number;
+  pokemonId: number | null;
   route: string;
   nickname?: string;
   status: string;
@@ -37,7 +37,7 @@ export interface Event {
     type1: string;
     type2?: string;
     total: number;
-  };
+  } | null;
 }
 
 export interface CreateEventRequest {

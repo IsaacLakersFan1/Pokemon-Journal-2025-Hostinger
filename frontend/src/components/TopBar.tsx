@@ -6,19 +6,23 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { toastError } from "@/hooks/useToastError";
 import { useSyncPokemon } from "@/hooks/useSyncPokemon";
-import { RefreshCw } from "lucide-react";
+import { Database, RefreshCw } from "lucide-react";
+import API_URL from "@/utils/apiConfig";
+import { useState } from "react";
 
 export function TopBar() {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { showToastError } = toastError();
   const { syncPokemon, isLoading } = useSyncPokemon();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -35,6 +39,20 @@ export function TopBar() {
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  const handleDownloadDB = async () => {
+    setIsDownloading(true);
+    try {
+        // Directly open the download URL instead of using fetch
+        window.open(`${API_URL}/api/settings/download-db`, "_blank");
+        console.log("Downloading DB...", isDownloading);
+    } catch (error) {
+        console.error("Download error:", error);
+    } finally {
+        setIsDownloading(false);
+    }
+
   }
 
   return (
@@ -73,16 +91,18 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={syncPokemon}
-            disabled={isLoading}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Sincronizar Pokemon
-          </Button>
+          {user?.role === "admin" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={syncPokemon}
+              disabled={isLoading}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Sincronizar Pokemon
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -106,6 +126,11 @@ export function TopBar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDownloadDB}>
+                                    <Database className="mr-2 h-4 w-4" />
+                                    <span>Download DB</span>
+                                    <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
+                                </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleNavigation("/profile")}>
                 Perfil
               </DropdownMenuItem>

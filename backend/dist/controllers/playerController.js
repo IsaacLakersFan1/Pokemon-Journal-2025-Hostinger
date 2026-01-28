@@ -209,8 +209,11 @@ const getTrainerStats = (req, res) => __awaiter(void 0, void 0, void 0, function
             return;
         }
         // Fetch player events, optionally filter by gameId
+        // Only include events from non-deleted games
         const events = yield prismaClient_1.default.event.findMany({
-            where: Object.assign(Object.assign({ playerId: parseInt(playerId) }, (gameId ? { gameId: parseInt(gameId) } : {})), (0, softDelete_1.excludeDeletedEvent)()),
+            where: Object.assign(Object.assign(Object.assign({ playerId: parseInt(playerId) }, (gameId ? { gameId: parseInt(gameId) } : {})), (0, softDelete_1.excludeDeletedEvent)()), { game: {
+                    deletedAt: null // Only include events from non-deleted games
+                } }),
             include: {
                 pokemon: true,
             },
@@ -281,11 +284,20 @@ const getPokemonsStats = (req, res) => __awaiter(void 0, void 0, void 0, functio
     const playerId = parseInt(req.params.playerId); // Get playerId from URL parameter
     try {
         // Fetch all non-deleted Pokémon with their events (and shiny status) for the given playerId
+        // Exclude Pokémon that have events in soft-deleted games
         const pokemons = yield prismaClient_1.default.pokemon.findMany({
-            where: (0, softDelete_1.excludeDeletedPokemon)(),
+            where: Object.assign(Object.assign({}, (0, softDelete_1.excludeDeletedPokemon)()), { 
+                // Only include Pokémon that have events in non-deleted games
+                events: {
+                    some: Object.assign(Object.assign({ playerId: playerId }, (0, softDelete_1.excludeDeletedEvent)()), { game: {
+                            deletedAt: null // Only include events from non-deleted games
+                        } })
+                } }),
             include: {
                 events: {
-                    where: Object.assign({ playerId: playerId }, (0, softDelete_1.excludeDeletedEvent)()),
+                    where: Object.assign(Object.assign({ playerId: playerId }, (0, softDelete_1.excludeDeletedEvent)()), { game: {
+                            deletedAt: null // Only include events from non-deleted games
+                        } }),
                     select: {
                         isShiny: true, // Select shiny status
                     },

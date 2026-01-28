@@ -26,7 +26,7 @@ export function useLoginForm(): UseLoginForm {
             // Verificar autenticación después del login exitoso
             await checkAuth();
             showToastSuccess("Login exitoso");
-            navigate("/sessions");
+            navigate("/games");
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || "Error al iniciar sesión";
             showToastError(errorMessage);

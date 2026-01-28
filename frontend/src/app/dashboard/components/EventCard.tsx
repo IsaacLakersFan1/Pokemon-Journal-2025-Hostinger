@@ -110,6 +110,11 @@ export function EventCard({ event, onDelete }: EventCardProps) {
   };
 
   const fetchPokemonInfo = async () => {
+    if (!event.pokemonId) {
+      showToastError("Este evento no tiene un Pokemon asociado");
+      return;
+    }
+
     try {
       const response = await axios.get(`${API_URL}/api/pokemon/${event.pokemonId}`, {
         withCredentials: true,
@@ -124,6 +129,44 @@ export function EventCard({ event, onDelete }: EventCardProps) {
     }
   };
 
+  if (!event.pokemon) {
+    return (
+      <div className="border rounded-md p-4 shadow-md flex w-full justify-between items-center bg-gray-100">
+        <div className="flex-1 text-center">
+          <p className="text-gray-500">Evento sin Pokemon asociado</p>
+          <p className="text-sm text-gray-400 mt-1">{event.route}</p>
+        </div>
+        <div className="flex space-x-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="py-2 px-4 bg-red-500 text-white hover:bg-red-600"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar Eliminación</AlertDialogTitle>
+                <AlertDialogDescription>
+                  ¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteEvent} className="bg-red-500 hover:bg-red-600">
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div
@@ -133,11 +176,13 @@ export function EventCard({ event, onDelete }: EventCardProps) {
       >
         {/* First Block - Pokemon Image and Types */}
         <div>
-          <img
-            src={`http://goc4840sk8cc4cws448osgoo.193.46.198.43.sslip.io/public/PokemonImages/${event.pokemon.image}.png`}
-            alt={event.pokemon.name}
-            className="w-20 h-20 mx-auto object-contain mb-2"
-          />
+          {event.pokemon.image && (
+            <img
+              src={`http://goc4840sk8cc4cws448osgoo.193.46.198.43.sslip.io/public/PokemonImages/${event.pokemon.image}.png`}
+              alt={event.pokemon.name}
+              className="w-20 h-20 mx-auto object-contain mb-2"
+            />
+          )}
           <div className="flex justify-center space-x-2 mt-2">
             <span
               className="px-2 py-1 rounded-full text-white text-xs font-semibold"
