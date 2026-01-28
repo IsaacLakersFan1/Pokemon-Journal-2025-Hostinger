@@ -39,8 +39,11 @@ export function SignupForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={(e) => {
-            handleSignup(e, firstName, lastName, email, password, confirmPassword);
+          <form onSubmit={async (e) => {
+            const success = await handleSignup(e, firstName, lastName, email, password, confirmPassword);
+            if (success) {
+              navigate("/login");
+            }
           }}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">

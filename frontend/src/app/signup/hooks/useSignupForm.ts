@@ -10,11 +10,11 @@ export function useSignupForm(): UseSignupForm {
     const { showToastError } = toastError();
     const { showToastSuccess } = toastSuccess();
 
-    const handleSignup = async (e: React.FormEvent<HTMLFormElement>, firstName: string, lastName: string, email: string, password: string, confirmPassword: string) => {
+    const handleSignup = async (e: React.FormEvent<HTMLFormElement>, firstName: string, lastName: string, email: string, password: string, confirmPassword: string): Promise<boolean> => {
         e.preventDefault();
         if (password !== confirmPassword) {
             showToastError("Passwords do not match");
-            return;
+            return false;
         }
         try {
             const response = await axios.post(`${API_URL}/api/auth/signup`, {
@@ -24,8 +24,10 @@ export function useSignupForm(): UseSignupForm {
                 email
             });
             showToastSuccess(response.data.message);
+            return true;
         } catch (error) {
             showToastError(error);
+            return false;
         }
     }
 

@@ -10,7 +10,7 @@ interface PublicRouteProps {
 
 export const PublicRoute = ({ 
   children, 
-  redirectTo = "/home",
+  redirectTo = "/login",
   allowAuthenticated = false // Por defecto no permite acceso cuando está autenticado
 }: PublicRouteProps) => {
   const { isAuthenticated, loading } = useAuth();
