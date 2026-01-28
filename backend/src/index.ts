@@ -25,8 +25,8 @@ app.use(
       "http://localhost:5173",
       "http://localhost:5174",
       "http://localhost:4173",
-      "http://n0ksgoooc40sckswwk8cgkso.193.46.198.43.sslip.io",
-      "http://yw8g0o4oksscgswgs4848c4o.193.46.198.43.sslip.io"
+      "http://fswkskwc4sk40s8ok4c8s4sg.193.46.198.43.sslip.io",
+      "http://ys0k0wsw0cc0840o4g88kc8w.193.46.198.43.sslip.io"
     ],
   })
 );
