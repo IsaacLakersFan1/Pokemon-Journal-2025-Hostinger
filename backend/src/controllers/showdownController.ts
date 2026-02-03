@@ -54,8 +54,9 @@ export const createShowdown = async (req: AuthenticatedRequest, res: Response): 
   }
   const p1Ids = Array.isArray(player1EventIds) ? player1EventIds : parseEventIds(player1EventIds);
   const p2Ids = Array.isArray(player2EventIds) ? player2EventIds : parseEventIds(player2EventIds);
-  if (p1Ids.length !== 6 || p2Ids.length !== 6) {
-    res.status(400).json({ error: "Each player must have exactly 6 event IDs" });
+  const validCount = (ids: number[]) => ids.length >= 1 && ids.length <= 6;
+  if (!validCount(p1Ids) || !validCount(p2Ids)) {
+    res.status(400).json({ error: "Each player must have between 1 and 6 event IDs" });
     return;
   }
   try {

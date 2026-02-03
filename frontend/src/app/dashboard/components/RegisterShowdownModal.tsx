@@ -100,8 +100,8 @@ export function RegisterShowdownModal({
       showToastError("Elige dos jugadores distintos");
       return;
     }
-    if (player1EventIds.length !== EVENT_LIMIT || player2EventIds.length !== EVENT_LIMIT) {
-      showToastError("Cada jugador debe tener exactamente 6 Pokémon (Catched)");
+    if (player1EventIds.length < 1 || player2EventIds.length < 1) {
+      showToastError("Cada jugador debe tener al menos 1 Pokémon (Catched). Máximo 6.");
       return;
     }
     if (!winnerId || (winnerId !== player1Id && winnerId !== player2Id)) {
@@ -193,7 +193,7 @@ export function RegisterShowdownModal({
           {player1Id && player2Id && (
             <>
               <div className="space-y-2">
-                <Label>Equipo de {players.find((p) => p.id === player1Id)?.name} (6 Pokémon Catched)</Label>
+                <Label>Equipo de {players.find((p) => p.id === player1Id)?.name} (máx. 6 Pokémon Catched)</Label>
                 <div className="flex flex-wrap gap-2 border rounded p-2 min-h-10">
                   {player1Events.map((e) => {
                     const selected = player1EventIds.includes(e.id);
@@ -217,7 +217,7 @@ export function RegisterShowdownModal({
                 <p className="text-xs text-muted-foreground">{player1EventIds.length} / 6</p>
               </div>
               <div className="space-y-2">
-                <Label>Equipo de {players.find((p) => p.id === player2Id)?.name} (6 Pokémon Catched)</Label>
+                <Label>Equipo de {players.find((p) => p.id === player2Id)?.name} (máx. 6 Pokémon Catched)</Label>
                 <div className="flex flex-wrap gap-2 border rounded p-2 min-h-10">
                   {player2Events.map((e) => {
                     const selected = player2EventIds.includes(e.id);
@@ -259,7 +259,7 @@ export function RegisterShowdownModal({
                   </SelectContent>
                 </Select>
               </div>
-              {allSelectedEventIds.length === 12 && (
+              {allSelectedEventIds.length > 0 && (
                 <div className="space-y-2">
                   <Label>MVP (opcional)</Label>
                   <Select
@@ -267,7 +267,7 @@ export function RegisterShowdownModal({
                     onValueChange={(v) => setMvpEventId(v ? Number(v) : null)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Elegir MVP de los 12" />
+                      <SelectValue placeholder="Elegir MVP del equipo" />
                     </SelectTrigger>
                     <SelectContent>
                       {allSelectedEvents.map((e) => (
@@ -292,8 +292,8 @@ export function RegisterShowdownModal({
                 isSubmitting ||
                 !player1Id ||
                 !player2Id ||
-                player1EventIds.length !== EVENT_LIMIT ||
-                player2EventIds.length !== EVENT_LIMIT ||
+                player1EventIds.length < 1 ||
+                player2EventIds.length < 1 ||
                 !winnerId
               }
             >
