@@ -1,0 +1,19 @@
+-- CreateTable
+CREATE TABLE "Showdown" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "gameId" INTEGER NOT NULL,
+    "player1Id" INTEGER NOT NULL,
+    "player2Id" INTEGER NOT NULL,
+    "winnerId" INTEGER NOT NULL,
+    "player1EventIds" TEXT NOT NULL,
+    "player2EventIds" TEXT NOT NULL,
+    "mvpEventId" INTEGER,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deletedAt" DATETIME,
+    CONSTRAINT "Showdown_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "Game" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Showdown_player1Id_fkey" FOREIGN KEY ("player1Id") REFERENCES "Player" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Showdown_player2Id_fkey" FOREIGN KEY ("player2Id") REFERENCES "Player" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Showdown_winnerId_fkey" FOREIGN KEY ("winnerId") REFERENCES "Player" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Showdown_mvpEventId_fkey" FOREIGN KEY ("mvpEventId") REFERENCES "Event" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);

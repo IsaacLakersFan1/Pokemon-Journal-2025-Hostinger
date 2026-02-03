@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../middleware/authMiddleware");
+const showdownController_1 = require("../controllers/showdownController");
+const router = (0, express_1.Router)();
+router.get("/game/:gameId", authMiddleware_1.authenticateJWT, showdownController_1.getShowdownsByGame);
+router.post("/", authMiddleware_1.authenticateJWT, showdownController_1.createShowdown);
+router.put("/:id", authMiddleware_1.authenticateJWT, showdownController_1.updateShowdown);
+router.delete("/:id", authMiddleware_1.authenticateJWT, showdownController_1.deleteShowdown);
+exports.default = router;

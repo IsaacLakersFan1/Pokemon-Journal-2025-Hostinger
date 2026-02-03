@@ -5,7 +5,7 @@ import API_URL from "@/utils/apiConfig";
 import { toastError } from "@/hooks/useToastError";
 import { toastSuccess } from "@/hooks/useToastSuccess";
 import { UseDashboardReturn } from "../interfaces/useDashboard";
-import { Player, Event, Pokemon, CreateEventRequest, PlayerGameResponse } from "../interfaces/Dashboard";
+import { Player, Event, Pokemon, CreateEventRequest, PlayerGameResponse, ShowdownMatchup } from "../interfaces/Dashboard";
 
 export function useDashboard(): UseDashboardReturn {
   const { gameId: gameIdParam } = useParams<{ gameId: string }>();
@@ -22,6 +22,8 @@ export function useDashboard(): UseDashboardReturn {
   const [status, setStatus] = useState("Catched");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
+  const [gameName, setGameName] = useState("");
+  const [matchups, setMatchups] = useState<ShowdownMatchup[]>([]);
 
   const { showToastError } = toastError();
   const { showToastSuccess } = toastSuccess();
@@ -39,7 +41,34 @@ export function useDashboard(): UseDashboardReturn {
     }
   };
 
-  // Fetch players
+  const fetchGame = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/games/${gameId}`, {
+        withCredentials: true,
+      });
+      setGameName(response.data.game?.name ?? "");
+    } catch (error: unknown) {
+      const msg = error && typeof error === "object" && "response" in error
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+        : "Error al cargar el juego";
+      showToastError(msg);
+    }
+  };
+
+  const fetchShowdowns = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/showdowns/game/${gameId}`, {
+        withCredentials: true,
+      });
+      setMatchups(response.data.matchups ?? []);
+    } catch (error: unknown) {
+      const msg = error && typeof error === "object" && "response" in error
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+        : "Error al cargar showdowns";
+      showToastError(msg);
+    }
+  };
+
   const fetchPlayers = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/player-games/${gameId}`, {
@@ -118,8 +147,10 @@ export function useDashboard(): UseDashboardReturn {
   // Effects
   useEffect(() => {
     if (gameId) {
+      fetchGame();
       fetchPlayers();
       fetchEvents();
+      fetchShowdowns();
     }
   }, [gameId]);
 
@@ -153,10 +184,12 @@ export function useDashboard(): UseDashboardReturn {
     setIsSubmitting,
     events,
     setEvents,
-    
-    // Functions
+    gameName,
+    matchups,
     fetchEvents,
     fetchPlayers,
+    fetchGame,
+    fetchShowdowns,
     handleCreateEvent,
     searchPokemon,
   };

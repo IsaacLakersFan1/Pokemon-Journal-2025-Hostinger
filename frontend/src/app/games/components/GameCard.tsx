@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { Trash2, Play } from "lucide-react";
+import { Trash2, Play, Pencil } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,6 +64,15 @@ export function GameCard({ game, onDelete }: GameCardProps) {
               <Play className="h-4 w-4" />
               Continuar
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={() => navigate(`/games/${game.id}/edit`)}
+            >
+              <Pencil className="h-4 w-4" />
+              Editar
+            </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
@@ -72,7 +81,6 @@ export function GameCard({ game, onDelete }: GameCardProps) {
                   className="flex items-center gap-2"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Eliminar
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>

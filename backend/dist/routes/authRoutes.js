@@ -10,4 +10,5 @@ router.post('/signup', authController_1.signup);
 router.post('/login', authController_1.login);
 router.get('/me', authController_1.me);
 router.post('/logout', authController_1.logout);
+router.post('/switch-account', authController_1.switchAccount);
 exports.default = router;

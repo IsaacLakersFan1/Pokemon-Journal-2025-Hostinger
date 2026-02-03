@@ -190,36 +190,45 @@ export const restorePlayer = async (req: AuthenticatedRequest, res: Response): P
   }
 };
 
-// Get all players for the authenticated user
+// Get players: ?scope=account = only current user (no merge). Otherwise all accounts merged by name.
 export const getPlayers = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const userId = req.user?.userId;
-
-  console.log('getPlayers called with userId:', userId);
-
   if (!userId) {
     res.status(400).json({ error: 'User not authenticated' });
     return;
   }
 
+  const scope = req.query.scope as string | undefined;
+  const accountOnly = scope === 'account';
+
   try {
-    // Fetch non-deleted players with related Pokémon data
-    const players = await prisma.player.findMany({
-      where: { 
-        userId,
-        ...excludeDeletedPlayer(),
-      },
+    const where = accountOnly
+      ? { userId, ...excludeDeletedPlayer() }
+      : excludeDeletedPlayer();
+
+    const allPlayers = await prisma.player.findMany({
+      where,
       include: {
         pokemon: true,
         playerGames: {
-          include: {
-            game: true,
-          },
+          include: { game: true },
         },
         events: true,
       },
     });
 
-    console.log('Players found:', players.length);
+    if (accountOnly) {
+      res.status(200).json(allPlayers);
+      return;
+    }
+
+    const byName = new Map<string, (typeof allPlayers)[0]>();
+    for (const p of allPlayers) {
+      if (!byName.has(p.name)) {
+        byName.set(p.name, p);
+      }
+    }
+    const players = Array.from(byName.values());
     res.status(200).json(players);
   } catch (error) {
     console.error('Error fetching players:', error);
@@ -227,43 +236,49 @@ export const getPlayers = async (req: AuthenticatedRequest, res: Response): Prom
   }
 };
 
-// Trainer Stats Endpoint
+// Returns all player IDs that have the same name as the given player (across all accounts)
+async function getPlayerIdsByName(playerId: number): Promise<number[]> {
+  const player = await prisma.player.findFirst({
+    where: { id: playerId, ...excludeDeletedPlayer() },
+    select: { name: true },
+  });
+  if (!player) return [];
+  const sameName = await prisma.player.findMany({
+    where: { name: player.name, ...excludeDeletedPlayer() },
+    select: { id: true },
+  });
+  return sameName.map((p) => p.id);
+}
+
+// Trainer Stats Endpoint (aggregates stats for all players with same name across accounts)
 export const getTrainerStats = async (req: Request, res: Response): Promise<void> => {
-  const { playerId } = req.params;
-  const { gameId } = req.query; // Optional gameId to filter by game
+  const playerIdNum = parseInt(req.params.playerId);
+  const { gameId } = req.query;
 
   try {
-    // Fetch player data (including name and Pokémon details) and events, optionally filtered by gameId
-    const player = await prisma.player.findFirst({
-      where: { 
-        id: parseInt(playerId),
-        ...excludeDeletedPlayer(),
-      },
-      include: {
-        pokemon: true,
-      },
-    });
+    const playerIds = await getPlayerIdsByName(playerIdNum);
+    if (playerIds.length === 0) {
+      res.status(404).json({ message: 'Player not found or deleted' });
+      return;
+    }
 
-    // If player not found, return an error
+    const player = await prisma.player.findFirst({
+      where: { id: playerIds[0], ...excludeDeletedPlayer() },
+      include: { pokemon: true },
+    });
     if (!player) {
       res.status(404).json({ message: 'Player not found or deleted' });
       return;
     }
 
-    // Fetch player events, optionally filter by gameId
-    // Only include events from non-deleted games
     const events = await prisma.event.findMany({
       where: {
-        playerId: parseInt(playerId),
+        playerId: { in: playerIds },
         ...(gameId ? { gameId: parseInt(gameId as string) } : {}),
         ...excludeDeletedEvent(),
-        game: {
-          deletedAt: null // Only include events from non-deleted games
-        }
+        game: { deletedAt: null },
       },
-      include: {
-        pokemon: true,
-      },
+      include: { pokemon: true },
     });
 
     // Initialize stats object
@@ -328,47 +343,59 @@ export const getTrainerStats = async (req: Request, res: Response): Promise<void
   }
 };
 
-// Trainer Stats by Pokémon
+// Trainer Stats by Pokémon (aggregates for all players with same name)
 export const getPokemonsStats = async (req: Request, res: Response): Promise<void> => {
-  const playerId = parseInt(req.params.playerId); // Get playerId from URL parameter
+  const playerId = parseInt(req.params.playerId);
 
   try {
-    // Fetch all non-deleted Pokémon with their events (and shiny status) for the given playerId
-    // Exclude Pokémon that have events in soft-deleted games
+    const playerIds = await getPlayerIdsByName(playerId);
+    if (playerIds.length === 0) {
+      res.status(404).json({ message: 'Player not found or deleted' });
+      return;
+    }
+
     const pokemons = await prisma.pokemon.findMany({
       where: {
         ...excludeDeletedPokemon(),
-        // Only include Pokémon that have events in non-deleted games
         events: {
           some: {
-            playerId: playerId,
+            playerId: { in: playerIds },
             ...excludeDeletedEvent(),
-            game: {
-              deletedAt: null // Only include events from non-deleted games
-            }
-          }
-        }
+            game: { deletedAt: null },
+          },
+        },
       },
       include: {
         events: {
           where: {
-            playerId: playerId, // Only include events for the given playerId
+            playerId: { in: playerIds },
             ...excludeDeletedEvent(),
-            game: {
-              deletedAt: null // Only include events from non-deleted games
-            }
+            game: { deletedAt: null },
           },
-          select: {
-            isShiny: true, // Select shiny status
-          },
+          select: { id: true, isShiny: true },
         },
       },
     });
 
-    // Map the Pokémon data to an array of objects
+    const allShowdowns = await prisma.showdown.findMany({
+      where: { deletedAt: null },
+      select: { winnerId: true, mvpEventId: true, player1EventIds: true, player2EventIds: true },
+    });
+
     const pokemonStats = pokemons.map((pokemon) => {
       const timesCaptured = pokemon.events.length;
-      const shinyCapture = pokemon.events.some(event => event.isShiny === 1) ? 'yes' : 'no';
+      const shinyCapture = pokemon.events.some((event) => event.isShiny === 1) ? 'yes' : 'no';
+      const eventIds = pokemon.events.map((e) => e.id);
+      let showdownWins = 0;
+      let mvpCount = 0;
+      for (const s of allShowdowns) {
+        const p1Ids = parseEventIds(s.player1EventIds);
+        const p2Ids = parseEventIds(s.player2EventIds);
+        const inShowdown = eventIds.some((id) => p1Ids.includes(id) || p2Ids.includes(id));
+        if (!inShowdown) continue;
+        if (playerIds.includes(s.winnerId)) showdownWins += 1;
+        if (s.mvpEventId && eventIds.includes(s.mvpEventId)) mvpCount += 1;
+      }
 
       return {
         id: pokemon.id,
@@ -378,12 +405,13 @@ export const getPokemonsStats = async (req: Request, res: Response): Promise<voi
         form: pokemon.form,
         timesCaptured,
         shinyCapture,
-        image: pokemon.image || null, // Regular image URL
-        shinyImage: pokemon.shinyImage || null, // Shiny image URL
+        image: pokemon.image || null,
+        shinyImage: pokemon.shinyImage || null,
+        showdownWins,
+        mvpCount,
       };
     });
 
-    // Send the result as a JSON response
     res.json(pokemonStats);
   } catch (error) {
     console.error('Error fetching Pokémon stats:', error);
@@ -391,9 +419,112 @@ export const getPokemonsStats = async (req: Request, res: Response): Promise<voi
   }
 };
 
+function parseEventIds(json: string): number[] {
+  try {
+    const arr = JSON.parse(json);
+    return Array.isArray(arr) ? arr.map(Number).filter((n) => !isNaN(n)) : [];
+  } catch {
+    return [];
+  }
+}
 
+// Pokemon detail for player (aggregates for all players with same name; showdown stats, per-game list)
+export const getPokemonDetail = async (req: Request, res: Response): Promise<void> => {
+  const playerId = parseInt(req.params.playerId);
+  const pokemonId = parseInt(req.params.pokemonId);
 
+  try {
+    const playerIds = await getPlayerIdsByName(playerId);
+    if (playerIds.length === 0) {
+      res.status(404).json({ message: 'Player not found or deleted' });
+      return;
+    }
 
+    const events = await prisma.event.findMany({
+      where: {
+        playerId: { in: playerIds },
+        pokemonId,
+        ...excludeDeletedEvent(),
+        game: { deletedAt: null },
+      },
+      include: {
+        game: { select: { id: true, name: true } },
+        pokemon: { select: { id: true, name: true, form: true, type1: true, type2: true, image: true, shinyImage: true } },
+      },
+    });
+
+    if (events.length === 0) {
+      res.status(404).json({ message: 'No events found for this player and pokemon' });
+      return;
+    }
+
+    const eventIds = events.map((e) => e.id);
+    const showdowns = await prisma.showdown.findMany({
+      where: { deletedAt: null },
+      select: { id: true, winnerId: true, mvpEventId: true, gameId: true, player1EventIds: true, player2EventIds: true },
+    });
+
+    let showdownBattles = 0;
+    let showdownWins = 0;
+    let mvpCount = 0;
+    for (const s of showdowns) {
+      const p1Ids = parseEventIds(s.player1EventIds);
+      const p2Ids = parseEventIds(s.player2EventIds);
+      const inShowdown = eventIds.some((id) => p1Ids.includes(id) || p2Ids.includes(id));
+      if (!inShowdown) continue;
+      showdownBattles += 1;
+      if (playerIds.includes(s.winnerId)) showdownWins += 1;
+      if (s.mvpEventId && eventIds.includes(s.mvpEventId)) mvpCount += 1;
+    }
+
+    const leagueWins = events.filter((e) => e.isChamp === 1).length;
+    const defeatedCount = events.filter((e) => e.status === 'Defeated').length;
+    const escapedCount = events.filter((e) => e.status === 'Run Away').length;
+
+    const showdownsByGame = await prisma.showdown.findMany({
+      where: { deletedAt: null },
+      select: { id: true, mvpEventId: true, gameId: true },
+    });
+
+    const eventsByGameMap = new Map<number, { gameId: number; gameName: string; events: Array<{ eventId: number; nickname: string | null; status: string | null; isShiny: number; isChamp: number; mvpCountInGame: number }> }>();
+
+    for (const e of events) {
+      const gameId = e.gameId;
+      const gameName = e.game.name;
+      if (!eventsByGameMap.has(gameId)) {
+        eventsByGameMap.set(gameId, { gameId, gameName, events: [] });
+      }
+      const showdownsInGame = showdownsByGame.filter((s) => s.gameId === gameId);
+      const mvpCountInGame = showdownsInGame.filter((s) => s.mvpEventId === e.id).length;
+      eventsByGameMap.get(gameId)!.events.push({
+        eventId: e.id,
+        nickname: e.nickname,
+        status: e.status,
+        isShiny: e.isShiny,
+        isChamp: e.isChamp,
+        mvpCountInGame,
+      });
+    }
+
+    const eventsByGame = Array.from(eventsByGameMap.values());
+    const pokemon = events[0].pokemon;
+
+    res.json({
+      pokemon: pokemon ? { id: pokemon.id, name: pokemon.name, form: pokemon.form, type1: pokemon.type1, type2: pokemon.type2, image: pokemon.image, shinyImage: pokemon.shinyImage } : null,
+      showdownBattles,
+      showdownWins,
+      mvpCount,
+      leagueWins,
+      defeatedCount,
+      escapedCount,
+      timesCaptured: events.length,
+      eventsByGame,
+    });
+  } catch (error) {
+    console.error('Error fetching Pokémon detail:', error);
+    res.status(500).json({ message: 'An error occurred while fetching Pokémon detail.' });
+  }
+};
 
 
 

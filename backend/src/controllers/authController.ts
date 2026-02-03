@@ -144,10 +144,40 @@ const logout = async (req: Request, res: Response): Promise<void> => {
     }
 }
 
+const switchAccount = async (req: Request, res: Response): Promise<void> => {
+    const token = req.body?.token;
+    if (!token || typeof token !== "string") {
+        res.status(400).json({ message: "Token is required" });
+        return;
+    }
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: { id: true, firstName: true, lastName: true, email: true, role: true }
+        });
+        if (!user) {
+            res.status(401).json({ message: "User not found" });
+            return;
+        }
+        res.cookie("tokenPokemonJournal", token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 30 * 24 * 60 * 60 * 1000
+        });
+        res.status(200).json({ message: "Account switched", user });
+    } catch (error) {
+        console.error(error);
+        res.status(401).json({ message: "Invalid token" });
+    }
+}
+
 export {
     login,
     signup,
     me,
-    logout
+    logout,
+    switchAccount
 }
 

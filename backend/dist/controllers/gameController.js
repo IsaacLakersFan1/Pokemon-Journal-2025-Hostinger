@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateGame = exports.getAllGames = exports.restoreGame = exports.deleteGame = exports.createGame = void 0;
+exports.updateGame = exports.getGameById = exports.getAllGames = exports.restoreGame = exports.deleteGame = exports.createGame = void 0;
 const prismaClient_1 = __importDefault(require("../utils/prismaClient"));
 const softDelete_1 = require("../utils/softDelete");
 // Create a new game
@@ -145,6 +145,45 @@ const getAllGames = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.getAllGames = getAllGames;
+// Get a single game by ID
+const getGameById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const gameId = parseInt(req.params.id);
+    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
+    if (!userId) {
+        res.status(400).json({ error: 'User not authenticated' });
+        return;
+    }
+    try {
+        const game = yield prismaClient_1.default.game.findFirst({
+            where: Object.assign({ id: gameId, userId }, (0, softDelete_1.excludeDeletedGame)()),
+            include: {
+                playerGames: {
+                    where: (0, softDelete_1.excludeDeletedPlayerGame)(),
+                    include: {
+                        player: {
+                            include: {
+                                pokemon: {
+                                    select: { name: true, image: true },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        if (!game) {
+            res.status(404).json({ error: 'Game not found' });
+            return;
+        }
+        res.status(200).json({ game });
+    }
+    catch (error) {
+        console.error('Error fetching game:', error);
+        res.status(500).json({ error: 'Failed to fetch game' });
+    }
+});
+exports.getGameById = getGameById;
 // Update game by ID
 const updateGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;

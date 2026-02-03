@@ -28,6 +28,7 @@ export interface Event {
   isShiny: number;
   isChamp: number;
   gameId: number;
+  createdAt?: string;
   player: Player;
   pokemon: {
     id: number;
@@ -48,4 +49,30 @@ export interface CreateEventRequest {
   playerId: number;
   status: string;
   gameId: number;
+}
+
+export interface ShowdownMatchup {
+  player1Id: number;
+  player2Id: number;
+  player1Name: string;
+  player2Name: string;
+  player1Points: number;
+  player2Points: number;
+  showdowns: ShowdownRecord[];
+}
+
+export interface ShowdownRecord {
+  id: number;
+  gameId: number;
+  player1Id: number;
+  player2Id: number;
+  winnerId: number;
+  player1EventIds: string;
+  player2EventIds: string;
+  mvpEventId: number | null;
+  createdAt: string;
+  player1: Player;
+  player2: Player;
+  winner: Player;
+  mvpEvent?: Event | null;
 }

@@ -21,4 +21,6 @@ export interface Pokemon {
   shinyCapture: string; // 'yes' or 'no'
   type1: string;
   type2: string;
+  showdownWins?: number;
+  mvpCount?: number;
 }

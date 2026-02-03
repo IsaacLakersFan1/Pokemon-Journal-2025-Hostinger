@@ -1,7 +1,7 @@
 import { Player, Event, Pokemon } from "./Dashboard";
+import { ShowdownMatchup } from "./Dashboard";
 
 export interface UseDashboardReturn {
-  // State
   pokemonQuery: string;
   setPokemonQuery: (query: string) => void;
   pokemonResults: Pokemon[];
@@ -22,10 +22,12 @@ export interface UseDashboardReturn {
   setIsSubmitting: (submitting: boolean) => void;
   events: Event[];
   setEvents: (events: Event[]) => void;
-  
-  // Functions
+  gameName: string;
+  matchups: ShowdownMatchup[];
   fetchEvents: () => Promise<void>;
   fetchPlayers: () => Promise<void>;
+  fetchGame: () => Promise<void>;
+  fetchShowdowns: () => Promise<void>;
   handleCreateEvent: () => Promise<void>;
   searchPokemon: (query: string) => Promise<void>;
 }

@@ -1,6 +1,6 @@
 // src/routes/playerRoutes.ts
 import { Router } from 'express';
-import { createPlayer, updatePlayer, deletePlayer, getPlayers, getTrainerStats, getPokemonsStats, restorePlayer } from '../controllers/playerController';
+import { createPlayer, updatePlayer, deletePlayer, getPlayers, getTrainerStats, getPokemonsStats, getPokemonDetail, restorePlayer } from '../controllers/playerController';
 import { authenticateJWT } from '../middleware/authMiddleware';
 
 const router = Router();
@@ -25,5 +25,8 @@ router.get('/stats/:playerId', authenticateJWT, getTrainerStats);
 
 // Route to get player stats by pokemon
 router.get('/stats/pokemon/:playerId', authenticateJWT, getPokemonsStats);
+
+// Route to get pokemon detail for a player (showdown stats, per-game list)
+router.get('/:playerId/pokemon/:pokemonId/detail', authenticateJWT, getPokemonDetail);
 
 export default router;

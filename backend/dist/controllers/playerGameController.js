@@ -56,6 +56,13 @@ const createPlayerGame = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 gameId,
             },
         });
+        const currentCount = yield prismaClient_1.default.playerGame.count({
+            where: Object.assign({ gameId }, (0, softDelete_1.excludeDeletedPlayerGame)()),
+        });
+        yield prismaClient_1.default.game.update({
+            where: { id: gameId },
+            data: { playerCount: currentCount },
+        });
         res.status(201).json({ message: 'Player linked to game successfully', playerGame: newPlayerGame });
     }
     catch (error) {
@@ -128,6 +135,13 @@ const removePlayerFromGame = (req, res) => __awaiter(void 0, void 0, void 0, fun
         yield prismaClient_1.default.playerGame.update({
             where: { id: playerGame.id },
             data: (0, softDelete_1.softDeletePlayerGameData)(),
+        });
+        const currentCount = yield prismaClient_1.default.playerGame.count({
+            where: Object.assign({ gameId: parseInt(gameId) }, (0, softDelete_1.excludeDeletedPlayerGame)()),
+        });
+        yield prismaClient_1.default.game.update({
+            where: { id: parseInt(gameId) },
+            data: { playerCount: currentCount },
         });
         res.status(200).json({ message: 'Player removed from game successfully' });
     }

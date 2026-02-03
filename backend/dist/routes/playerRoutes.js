@@ -19,4 +19,6 @@ router.post('/:id/restore', authMiddleware_1.authenticateJWT, playerController_1
 router.get('/stats/:playerId', authMiddleware_1.authenticateJWT, playerController_1.getTrainerStats);
 // Route to get player stats by pokemon
 router.get('/stats/pokemon/:playerId', authMiddleware_1.authenticateJWT, playerController_1.getPokemonsStats);
+// Route to get pokemon detail for a player (showdown stats, per-game list)
+router.get('/:playerId/pokemon/:pokemonId/detail', authMiddleware_1.authenticateJWT, playerController_1.getPokemonDetail);
 exports.default = router;

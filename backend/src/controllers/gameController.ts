@@ -163,6 +163,51 @@ export const getAllGames = async (req: AuthenticatedRequest, res: Response): Pro
   }
 };
 
+// Get a single game by ID
+export const getGameById = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const gameId = parseInt(req.params.id);
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    res.status(400).json({ error: 'User not authenticated' });
+    return;
+  }
+
+  try {
+    const game = await prisma.game.findFirst({
+      where: {
+        id: gameId,
+        userId,
+        ...excludeDeletedGame(),
+      },
+      include: {
+        playerGames: {
+          where: excludeDeletedPlayerGame(),
+          include: {
+            player: {
+              include: {
+                pokemon: {
+                  select: { name: true, image: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!game) {
+      res.status(404).json({ error: 'Game not found' });
+      return;
+    }
+
+    res.status(200).json({ game });
+  } catch (error) {
+    console.error('Error fetching game:', error);
+    res.status(500).json({ error: 'Failed to fetch game' });
+  }
+};
+
 // Update game by ID
 export const updateGame = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const gameId = parseInt(req.params.id);

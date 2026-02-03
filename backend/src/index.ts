@@ -9,6 +9,7 @@ import playerRoutes from "./routes/playerRoutes";
 import playerGameRoutes from "./routes/playerGameRoutes";
 import pokemonRoutes from "./routes/pokemonRoutes";
 import eventRoutes from "./routes/eventRoutes";
+import showdownRoutes from "./routes/showdownRoutes";
 import utilsRoutes from "./routes/utilsRoutes";
 import cookieParser from "cookie-parser";
 
@@ -41,6 +42,7 @@ app.use("/api/players", playerRoutes);
 app.use("/api/player-games", playerGameRoutes);
 app.use("/api/pokemon", pokemonRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/showdowns", showdownRoutes);
 app.use("/api/utils", utilsRoutes);
 
 app.listen(port, () => {

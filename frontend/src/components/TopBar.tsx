@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuCheckboxItem,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -13,16 +14,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { toastError } from "@/hooks/useToastError";
 import { useSyncPokemon } from "@/hooks/useSyncPokemon";
-import { Database, RefreshCw } from "lucide-react";
+import { Database, RefreshCw, UserPlus } from "lucide-react";
 import API_URL from "@/utils/apiConfig";
 import { useState } from "react";
 
 export function TopBar() {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, accounts, switchAccount } = useAuth();
   const navigate = useNavigate();
   const { showToastError } = toastError();
   const { syncPokemon, isLoading } = useSyncPokemon();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -35,6 +37,21 @@ export function TopBar() {
 
   const handleNavigation = (path: string) => {
     navigate(path);
+  };
+
+  const handleAddAccount = () => {
+    navigate("/login");
+  };
+
+  const handleSwitchAccount = async (token: string | null) => {
+    if (!token) return;
+    setIsSwitching(true);
+    try {
+      await switchAccount(token);
+      window.location.reload();
+    } finally {
+      setIsSwitching(false);
+    }
   };
 
   if (!isAuthenticated) {
@@ -115,6 +132,31 @@ export function TopBar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                Cuentas
+              </DropdownMenuLabel>
+              {accounts.map((acc) => (
+                <DropdownMenuCheckboxItem
+                  key={acc.user.id}
+                  checked={acc.isCurrent}
+                  disabled={acc.isCurrent || isSwitching || !acc.token}
+                  onSelect={() => handleSwitchAccount(acc.token)}
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium">
+                      {acc.user.firstName} {acc.user.lastName}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {acc.user.email}
+                    </span>
+                  </div>
+                </DropdownMenuCheckboxItem>
+              ))}
+              <DropdownMenuItem onClick={handleAddAccount}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Agregar cuenta
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">

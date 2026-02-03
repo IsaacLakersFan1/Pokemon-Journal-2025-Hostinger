@@ -1,10 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { HelpCircle, Star } from "lucide-react";
+import { HelpCircle, Star, Swords, Trophy } from "lucide-react";
 import { Pokemon } from "../interfaces/PlayerStats";
 
 interface PokemonCardProps {
   pokemon: Pokemon;
+  onClick?: () => void;
 }
 
 // Helper function to get the background color for each Pokémon type
@@ -33,16 +34,16 @@ const getTypeColor = (type: string): string => {
   return typeColors[type] || "#808080"; // Default to gray if no color found
 };
 
-export function PokemonCard({ pokemon }: PokemonCardProps) {
-  // Decide which image to display (regular or shiny)
+export function PokemonCard({ pokemon, onClick }: PokemonCardProps) {
   const pokemonImage = pokemon.shinyCapture === 'yes' && pokemon.shinyImage ? pokemon.shinyImage : pokemon.image;
-
-  // Determine display name and form
   const displayName = pokemon.timesCaptured === 0 ? '???' : pokemon.name;
   const displayForm = pokemon.timesCaptured === 0 ? 'Unknown Form' : pokemon.form;
 
   return (
-    <Card className="hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300">
+    <Card
+      className="hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300 cursor-pointer hover:scale-[1.02]"
+      onClick={onClick}
+    >
       <CardContent className="p-6">
         <div className="flex flex-col items-center space-y-4">
           {/* Pokémon ID Section */}
@@ -97,7 +98,7 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
           )}
 
           {/* Capture Count and Shiny Status */}
-          <div className="flex items-center justify-center space-x-6">
+          <div className="flex items-center justify-center flex-wrap gap-4">
             {/* Capture Count Section */}
             <div className="flex items-center justify-center">
               <img
@@ -112,12 +113,24 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
             </div>
 
             {/* Shiny Status Section */}
-            <div className="flex justify-center">
+            <div className="flex justify-center" title="Shiny">
               <Star
                 className={`w-6 h-6 ${
                   pokemon.shinyCapture === 'yes' ? 'text-yellow-500 fill-current' : 'text-gray-400'
                 }`}
               />
+            </div>
+
+            {/* Showdown Wins */}
+            <div className="flex items-center gap-1" title="Victorias en Showdown">
+              <Swords className="w-5 h-5 text-amber-600" />
+              <span className="text-sm font-semibold">{pokemon.showdownWins ?? 0}</span>
+            </div>
+
+            {/* MVPs */}
+            <div className="flex items-center gap-1" title="MVPs">
+              <Trophy className="w-5 h-5 text-amber-500" />
+              <span className="text-sm font-semibold">{pokemon.mvpCount ?? 0}</span>
             </div>
           </div>
         </div>

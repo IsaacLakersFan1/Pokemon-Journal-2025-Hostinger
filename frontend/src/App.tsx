@@ -5,6 +5,7 @@ import { LoginPage } from "./app/login/LoginPage";
 import { SignupPage } from "./app/signup/SignupPage";
 import { GamePage } from "./app/games/GamePage";
 import { NewGamePage } from "./app/games/new/NewGamePage";
+import { EditGamePage } from "./app/games/edit/EditGamePage";
 import { DashboardPage } from "./app/dashboard/DashboardPage";
 import { PlayersPage } from "./app/players/PlayersPage";
 import { GlobalPlayersPage } from "./app/global-players/GlobalPlayersPage";
@@ -55,6 +56,15 @@ function App() {
                 <ProtectedRoute>
                   <TopBar />
                   <NewGamePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/games/:gameId/edit"
+              element={
+                <ProtectedRoute>
+                  <TopBar />
+                  <EditGamePage />
                 </ProtectedRoute>
               }
             />

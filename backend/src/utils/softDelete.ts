@@ -52,6 +52,13 @@ export const excludeDeletedPlayerGame = () => ({
 });
 
 /**
+ * Creates a where clause for Showdown that excludes soft-deleted records
+ */
+export const excludeDeletedShowdown = () => ({
+  deletedAt: null,
+});
+
+/**
  * Creates soft delete data for any model
  */
 export const softDeleteData = () => ({
@@ -97,6 +104,13 @@ export const softDeleteEventData = () => ({
  * Creates soft delete data for PlayerGame model
  */
 export const softDeletePlayerGameData = () => ({
+  deletedAt: new Date(),
+});
+
+/**
+ * Creates soft delete data for Showdown model
+ */
+export const softDeleteShowdownData = () => ({
   deletedAt: new Date(),
 });
 
@@ -208,6 +222,14 @@ export const restoreEventData = () => ({
  * Restores a soft-deleted PlayerGame record
  */
 export const restorePlayerGameData = () => ({
+  deletedAt: null,
+  updatedAt: new Date(),
+});
+
+/**
+ * Restores a soft-deleted Showdown record
+ */
+export const restoreShowdownData = () => ({
   deletedAt: null,
   updatedAt: new Date(),
 });

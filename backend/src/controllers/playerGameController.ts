@@ -74,6 +74,14 @@ export const createPlayerGame = async (req: AuthenticatedRequest, res: Response)
       },
     });
 
+    const currentCount = await prisma.playerGame.count({
+      where: { gameId, ...excludeDeletedPlayerGame() },
+    });
+    await prisma.game.update({
+      where: { id: gameId },
+      data: { playerCount: currentCount },
+    });
+
     res.status(201).json({ message: 'Player linked to game successfully', playerGame: newPlayerGame });
   } catch (error) {
     console.error('Error linking player to game:', error);
@@ -166,6 +174,14 @@ export const removePlayerFromGame = async (req: AuthenticatedRequest, res: Respo
     await prisma.playerGame.update({
       where: { id: playerGame.id },
       data: softDeletePlayerGameData(),
+    });
+
+    const currentCount = await prisma.playerGame.count({
+      where: { gameId: parseInt(gameId), ...excludeDeletedPlayerGame() },
+    });
+    await prisma.game.update({
+      where: { id: parseInt(gameId) },
+      data: { playerCount: currentCount },
     });
 
     res.status(200).json({ message: 'Player removed from game successfully' });

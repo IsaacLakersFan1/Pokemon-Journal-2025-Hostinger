@@ -3,7 +3,7 @@
  * Utility functions for soft delete operations in Pokemon Journal
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.restorePlayerGameData = exports.restoreEventData = exports.restorePokemonData = exports.restorePlayerData = exports.restoreGameData = exports.restoreUserData = exports.restoreData = exports.updatePlayerGameData = exports.updateEventData = exports.updatePokemonData = exports.updatePlayerData = exports.updateGameData = exports.updateUserData = exports.updateData = exports.softDeletePlayerGameData = exports.softDeleteEventData = exports.softDeletePokemonData = exports.softDeletePlayerData = exports.softDeleteGameData = exports.softDeleteUserData = exports.softDeleteData = exports.excludeDeletedPlayerGame = exports.excludeDeletedEvent = exports.excludeDeletedPokemon = exports.excludeDeletedPlayer = exports.excludeDeletedGame = exports.excludeDeletedUser = exports.excludeDeleted = void 0;
+exports.restoreShowdownData = exports.restorePlayerGameData = exports.restoreEventData = exports.restorePokemonData = exports.restorePlayerData = exports.restoreGameData = exports.restoreUserData = exports.restoreData = exports.updatePlayerGameData = exports.updateEventData = exports.updatePokemonData = exports.updatePlayerData = exports.updateGameData = exports.updateUserData = exports.updateData = exports.softDeleteShowdownData = exports.softDeletePlayerGameData = exports.softDeleteEventData = exports.softDeletePokemonData = exports.softDeletePlayerData = exports.softDeleteGameData = exports.softDeleteUserData = exports.softDeleteData = exports.excludeDeletedShowdown = exports.excludeDeletedPlayerGame = exports.excludeDeletedEvent = exports.excludeDeletedPokemon = exports.excludeDeletedPlayer = exports.excludeDeletedGame = exports.excludeDeletedUser = exports.excludeDeleted = void 0;
 /**
  * Creates a where clause that excludes soft-deleted records
  */
@@ -54,6 +54,13 @@ const excludeDeletedPlayerGame = () => ({
 });
 exports.excludeDeletedPlayerGame = excludeDeletedPlayerGame;
 /**
+ * Creates a where clause for Showdown that excludes soft-deleted records
+ */
+const excludeDeletedShowdown = () => ({
+    deletedAt: null,
+});
+exports.excludeDeletedShowdown = excludeDeletedShowdown;
+/**
  * Creates soft delete data for any model
  */
 const softDeleteData = () => ({
@@ -102,6 +109,13 @@ const softDeletePlayerGameData = () => ({
     deletedAt: new Date(),
 });
 exports.softDeletePlayerGameData = softDeletePlayerGameData;
+/**
+ * Creates soft delete data for Showdown model
+ */
+const softDeleteShowdownData = () => ({
+    deletedAt: new Date(),
+});
+exports.softDeleteShowdownData = softDeleteShowdownData;
 /**
  * Creates update data with updatedAt timestamp
  */
@@ -193,3 +207,11 @@ const restorePlayerGameData = () => ({
     updatedAt: new Date(),
 });
 exports.restorePlayerGameData = restorePlayerGameData;
+/**
+ * Restores a soft-deleted Showdown record
+ */
+const restoreShowdownData = () => ({
+    deletedAt: null,
+    updatedAt: new Date(),
+});
+exports.restoreShowdownData = restoreShowdownData;

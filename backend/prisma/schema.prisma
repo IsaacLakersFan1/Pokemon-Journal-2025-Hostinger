@@ -35,6 +35,7 @@ model Game {
   user        User         @relation(fields: [userId], references: [id])
   playerGames PlayerGame[]
   events      Event[]
+  showdowns   Showdown[]
 }
 
 model PlayerGame {
@@ -51,17 +52,20 @@ model PlayerGame {
 }
 
 model Player {
-  id          Int          @id @default(autoincrement())
-  name        String
-  pokemonId   Int?         @unique // Make pokemonId unique
-  userId      Int
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @default(now())
-  deletedAt   DateTime?
-  user        User         @relation(fields: [userId], references: [id])
-  playerGames PlayerGame[]
-  events      Event[]      // Back-reference to Event model
-  pokemon     Pokemon?     @relation(fields: [pokemonId], references: [id]) // Relation to Pokemon
+  id                   Int         @id @default(autoincrement())
+  name                 String
+  pokemonId            Int?        @unique
+  userId               Int
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @default(now())
+  deletedAt            DateTime?
+  user                 User        @relation(fields: [userId], references: [id])
+  playerGames          PlayerGame[]
+  events               Event[]
+  pokemon              Pokemon?    @relation(fields: [pokemonId], references: [id])
+  showdownsAsPlayer1   Showdown[]  @relation("ShowdownPlayer1")
+  showdownsAsPlayer2   Showdown[]  @relation("ShowdownPlayer2")
+  showdownsWon         Showdown[]  @relation("ShowdownWinner")
 }
 
 model Pokemon {
@@ -90,19 +94,39 @@ model Pokemon {
 
 
 model Event {
-  id        Int      @id @default(autoincrement())
-  pokemonId Int?
-  route     String
-  nickname  String?
-  status    String?
-  isShiny   Int      @default(0) // Default value set to 0
-  isChamp   Int      @default(0) // Default value set to 0
-  gameId    Int
-  playerId  Int      // Field for Player relation
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-  deletedAt DateTime?
-  game      Game     @relation(fields: [gameId], references: [id])
-  player    Player   @relation(fields: [playerId], references: [id]) // Relation to Player
-  pokemon   Pokemon? @relation(fields: [pokemonId], references: [id])
+  id               Int       @id @default(autoincrement())
+  pokemonId        Int?
+  route            String
+  nickname         String?
+  status           String?
+  isShiny          Int       @default(0)
+  isChamp          Int       @default(0)
+  gameId           Int
+  playerId         Int
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now())
+  deletedAt        DateTime?
+  game             Game      @relation(fields: [gameId], references: [id])
+  player           Player    @relation(fields: [playerId], references: [id])
+  pokemon          Pokemon?  @relation(fields: [pokemonId], references: [id])
+  showdownsAsMvp   Showdown[] @relation
+}
+
+model Showdown {
+  id              Int       @id @default(autoincrement())
+  gameId          Int
+  player1Id       Int
+  player2Id       Int
+  winnerId        Int       // playerId of the winner
+  player1EventIds String   // JSON array of 6 event IDs, e.g. "[1,2,3,4,5,6]"
+  player2EventIds String   // JSON array of 6 event IDs
+  mvpEventId      Int?      // eventId of MVP among the 12
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now())
+  deletedAt       DateTime?
+  game            Game      @relation(fields: [gameId], references: [id])
+  player1         Player    @relation("ShowdownPlayer1", fields: [player1Id], references: [id])
+  player2         Player    @relation("ShowdownPlayer2", fields: [player2Id], references: [id])
+  winner          Player    @relation("ShowdownWinner", fields: [winnerId], references: [id])
+  mvpEvent        Event?    @relation(fields: [mvpEventId], references: [id])
 }
