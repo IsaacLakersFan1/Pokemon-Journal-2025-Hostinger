@@ -11,6 +11,7 @@ import { PlayersPage } from "./app/players/PlayersPage";
 import { GlobalPlayersPage } from "./app/global-players/GlobalPlayersPage";
 import { PlayerStatsPage } from "./app/player-stats/PlayerStatsPage";
 import { PokedexPage } from "./app/pokedex/PokedexPage";
+import { GuessWhoPage } from "./app/guess-who/GuessWhoPage";
 import { Toaster } from "@/components/ui/toaster";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { PublicRoute } from "./components/auth/PublicRoute";
@@ -110,6 +111,15 @@ function App() {
                 <ProtectedRoute>
                   <TopBar />
                   <PokedexPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/guess-who"
+              element={
+                <ProtectedRoute>
+                  <TopBar />
+                  <GuessWhoPage />
                 </ProtectedRoute>
               }
             />

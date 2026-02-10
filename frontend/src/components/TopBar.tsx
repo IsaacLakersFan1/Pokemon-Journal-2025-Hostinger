@@ -104,6 +104,13 @@ export function TopBar() {
             >
               Entrenadores
             </Button>
+            <Button
+              variant="ghost"
+              onClick={() => handleNavigation("/guess-who")}
+              className="text-sm font-medium"
+            >
+              Guess Who
+            </Button>
           </nav>
         </div>
 

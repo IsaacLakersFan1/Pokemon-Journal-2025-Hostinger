@@ -15,6 +15,7 @@ const playerGameRoutes_1 = __importDefault(require("./routes/playerGameRoutes"))
 const pokemonRoutes_1 = __importDefault(require("./routes/pokemonRoutes"));
 const eventRoutes_1 = __importDefault(require("./routes/eventRoutes"));
 const showdownRoutes_1 = __importDefault(require("./routes/showdownRoutes"));
+const guessWhoRoutes_1 = __importDefault(require("./routes/guessWhoRoutes"));
 const utilsRoutes_1 = __importDefault(require("./routes/utilsRoutes"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 dotenv_1.default.config();
@@ -42,6 +43,7 @@ app.use("/api/player-games", playerGameRoutes_1.default);
 app.use("/api/pokemon", pokemonRoutes_1.default);
 app.use("/api/events", eventRoutes_1.default);
 app.use("/api/showdowns", showdownRoutes_1.default);
+app.use("/api/guess-who", guessWhoRoutes_1.default);
 app.use("/api/utils", utilsRoutes_1.default);
 app.listen(port, () => {
     console.log(`Server is running on port http://localhost:${port}`);
