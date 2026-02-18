@@ -5,7 +5,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ShowdownMatchup } from "../interfaces/Dashboard";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ShowdownMatchup, ShowdownRecord } from "../interfaces/Dashboard";
 import { Pencil, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -22,6 +30,15 @@ import API_URL from "@/utils/apiConfig";
 import axios from "axios";
 import { toastError } from "@/hooks/useToastError";
 import { toastSuccess } from "@/hooks/useToastSuccess";
+
+function parseEventIds(json: string): number[] {
+  try {
+    const arr = JSON.parse(json);
+    return Array.isArray(arr) ? arr.map(Number).filter((n) => !isNaN(n)) : [];
+  } catch {
+    return [];
+  }
+}
 
 interface ShowdownInfoModalProps {
   open: boolean;
@@ -40,8 +57,44 @@ export function ShowdownInfoModal({
 }: ShowdownInfoModalProps) {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [editingShowdown, setEditingShowdown] = useState<ShowdownRecord | null>(null);
+  const [editWinnerId, setEditWinnerId] = useState<number | null>(null);
+  const [editMvpEventId, setEditMvpEventId] = useState<number | null | "">(null);
+  const [savingEdit, setSavingEdit] = useState(false);
   const { showToastError } = toastError();
   const { showToastSuccess } = toastSuccess();
+
+  const openEdit = (s: ShowdownRecord) => {
+    setEditingShowdown(s);
+    setEditWinnerId(s.winnerId);
+    setEditMvpEventId(s.mvpEventId ?? "");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingShowdown || editWinnerId === null) return;
+    setSavingEdit(true);
+    try {
+      await axios.put(
+        `${API_URL}/api/showdowns/${editingShowdown.id}`,
+        {
+          winnerId: editWinnerId,
+          mvpEventId: editMvpEventId === "" ? null : editMvpEventId,
+        },
+        { withCredentials: true }
+      );
+      showToastSuccess("Showdown actualizado");
+      setEditingShowdown(null);
+      await onRefresh();
+    } catch (error: unknown) {
+      const msg =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          : "Error al guardar";
+      showToastError(msg);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const handleDelete = async (id: number) => {
     setDeletingId(id);
@@ -103,9 +156,7 @@ export function ShowdownInfoModal({
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
-                              onClick={() => {
-                                /* TODO: open edit modal */
-                              }}
+                              onClick={() => openEdit(s)}
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -149,6 +200,67 @@ export function ShowdownInfoModal({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={editingShowdown !== null} onOpenChange={(o) => !o && setEditingShowdown(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Showdown</DialogTitle>
+          </DialogHeader>
+          {editingShowdown && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Ganador</Label>
+                <Select
+                  value={editWinnerId?.toString() ?? ""}
+                  onValueChange={(v) => setEditWinnerId(v ? Number(v) : null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Elegir ganador" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={editingShowdown.player1Id.toString()}>
+                      {editingShowdown.player1.name}
+                    </SelectItem>
+                    <SelectItem value={editingShowdown.player2Id.toString()}>
+                      {editingShowdown.player2.name}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>MVP (opcional)</Label>
+                <Select
+                  value={editMvpEventId === "" || editMvpEventId === null ? "none" : String(editMvpEventId)}
+                  onValueChange={(v) => setEditMvpEventId(v === "none" ? "" : Number(v))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Ninguno" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Ninguno</SelectItem>
+                    {[
+                      ...parseEventIds(editingShowdown.player1EventIds),
+                      ...parseEventIds(editingShowdown.player2EventIds),
+                    ].map((eventId) => (
+                      <SelectItem key={eventId} value={String(eventId)}>
+                        Evento #{eventId}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setEditingShowdown(null)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSaveEdit} disabled={savingEdit}>
+                  {savingEdit ? "Guardando..." : "Guardar"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

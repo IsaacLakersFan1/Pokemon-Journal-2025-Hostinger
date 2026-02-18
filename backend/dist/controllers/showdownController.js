@@ -30,7 +30,7 @@ function getDefeatedCountByPlayerInGame(gameId) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const events = yield prismaClient_1.default.event.findMany({
-            where: Object.assign(Object.assign({ gameId, status: "Defeated" }, (0, softDelete_1.excludeDeletedEvent)()), { game: { deletedAt: null } }),
+            where: Object.assign(Object.assign({ gameId, status: "Defeated" }, (0, softDelete_1.excludeDeletedEvent)()), { game: (0, softDelete_1.excludeDeletedGame)() }),
             select: { playerId: true },
         });
         const map = new Map();
@@ -156,9 +156,9 @@ const getShowdownsByGame = (req, res) => __awaiter(void 0, void 0, void 0, funct
             if (!m)
                 continue;
             m.showdowns.push(s);
-            if (s.winnerId === s.player1Id)
+            if (s.winnerId === m.player1Id)
                 m.player1Points += POINTS_PER_WIN;
-            if (s.winnerId === s.player2Id)
+            if (s.winnerId === m.player2Id)
                 m.player2Points += POINTS_PER_WIN;
         }
         const matchups = Array.from(matchupsMap.values());

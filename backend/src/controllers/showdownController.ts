@@ -30,7 +30,7 @@ async function getDefeatedCountByPlayerInGame(gameId: number): Promise<Map<numbe
       gameId,
       status: "Defeated",
       ...excludeDeletedEvent(),
-      game: { deletedAt: null },
+      game: excludeDeletedGame(),
     },
     select: { playerId: true },
   });
@@ -167,8 +167,8 @@ export const getShowdownsByGame = async (req: AuthenticatedRequest, res: Respons
       const m = matchupsMap.get(key);
       if (!m) continue;
       m.showdowns.push(s);
-      if (s.winnerId === s.player1Id) m.player1Points += POINTS_PER_WIN;
-      if (s.winnerId === s.player2Id) m.player2Points += POINTS_PER_WIN;
+      if (s.winnerId === m.player1Id) m.player1Points += POINTS_PER_WIN;
+      if (s.winnerId === m.player2Id) m.player2Points += POINTS_PER_WIN;
     }
 
     const matchups = Array.from(matchupsMap.values());
