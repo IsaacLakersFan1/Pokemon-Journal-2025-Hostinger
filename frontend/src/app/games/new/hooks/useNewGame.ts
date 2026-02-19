@@ -24,7 +24,7 @@ export function useNewGame(): UseNewGameReturn {
 
   const fetchPlayers = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/players`, {
+      const response = await axios.get(`${API_URL}/api/players?scope=account`, {
         withCredentials: true,
       });
       setPlayers(response.data);
