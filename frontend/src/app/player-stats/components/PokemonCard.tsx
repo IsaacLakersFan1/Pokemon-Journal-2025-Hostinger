@@ -2,8 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { HelpCircle, Star, Swords, Trophy } from "lucide-react";
 import { Pokemon } from "../interfaces/PlayerStats";
-import { pokemonImageUrl } from "@/utils/pokemonImage";
-import API_URL from "@/utils/apiConfig";
+import { pokemonImageUrl, pokeballImageUrl } from "@/utils/pokemonImage";
 
 interface PokemonCardProps {
   pokemon: Pokemon;
@@ -104,7 +103,7 @@ export function PokemonCard({ pokemon, onClick }: PokemonCardProps) {
             {/* Capture Count Section */}
             <div className="flex items-center justify-center">
               <img
-                src={`${API_URL}/public/PokemonImages/pokeball.png`}
+                src={pokeballImageUrl()}
                 alt="Pokéball"
                 className="w-6 h-6 mr-2"
                 onError={(e) => {
