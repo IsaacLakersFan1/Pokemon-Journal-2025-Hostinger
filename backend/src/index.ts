@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 import authRoutes from "./routes/authRoutes";
 import adminUserRoutes from "./routes/adminUserRoutes";
 import settingsRoutes from "./routes/settingsRoutes";
@@ -13,11 +14,13 @@ import showdownRoutes from "./routes/showdownRoutes";
 import guessWhoRoutes from "./routes/guessWhoRoutes";
 import utilsRoutes from "./routes/utilsRoutes";
 import cookieParser from "cookie-parser";
+import searchRoutes from "./routes/searchRoutes";
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const publicDir = path.join(process.cwd(), "public");
 
 app.use(
   cors({
@@ -28,12 +31,13 @@ app.use(
       "http://localhost:5174",
       "http://localhost:4173",
       "http://fswkskwc4sk40s8ok4c8s4sg.193.46.198.43.sslip.io",
-      "http://ys0k0wsw0cc0840o4g88kc8w.193.46.198.43.sslip.io"
+      "http://ys0k0wsw0cc0840o4g88kc8w.193.46.198.43.sslip.io",
     ],
   })
 );
 app.use(express.json());
 app.use(cookieParser());
+app.use("/public", express.static(publicDir));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin/user", adminUserRoutes);
@@ -46,8 +50,8 @@ app.use("/api/events", eventRoutes);
 app.use("/api/showdowns", showdownRoutes);
 app.use("/api/guess-who", guessWhoRoutes);
 app.use("/api/utils", utilsRoutes);
+app.use("/api/search", searchRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port http://localhost:${port}`);
 });
-

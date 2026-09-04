@@ -25,17 +25,20 @@ model User {
 }
 
 model Game {
-  id          Int          @id @default(autoincrement())
-  name        String
-  userId      Int
-  playerCount Int
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @default(now())
-  deletedAt   DateTime?
-  user        User         @relation(fields: [userId], references: [id])
-  playerGames PlayerGame[]
-  events      Event[]
-  showdowns   Showdown[]
+  id           Int          @id @default(autoincrement())
+  name         String
+  pokemonGame  String?      // e.g. Emerald, HeartGold, Scarlet
+  notes        String?      // house rules / agenda notes for the run
+  routeList    String?      // JSON array of route names for checklist
+  userId       Int
+  playerCount  Int
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @default(now())
+  deletedAt    DateTime?
+  user         User         @relation(fields: [userId], references: [id])
+  playerGames  PlayerGame[]
+  events       Event[]
+  showdowns    Showdown[]
 }
 
 model PlayerGame {

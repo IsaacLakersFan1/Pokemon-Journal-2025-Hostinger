@@ -3,6 +3,8 @@ import { Player, Pokemon } from "../../new/interfaces/NewGame";
 export interface GameWithPlayers {
   id: number;
   name: string;
+  pokemonGame?: string | null;
+  notes?: string | null;
   playerCount: number;
   playerGames: Array<{
     id: number;
@@ -17,6 +19,10 @@ export interface UseEditGameReturn {
   game: GameWithPlayers | null;
   gameName: string;
   setGameName: (name: string) => void;
+  pokemonGame: string;
+  setPokemonGame: (value: string) => void;
+  notes: string;
+  setNotes: (value: string) => void;
   playersInGame: Player[];
   allPlayers: Player[];
   loading: boolean;
@@ -24,7 +30,7 @@ export interface UseEditGameReturn {
   fetchAllPlayers: () => Promise<void>;
   addPlayerToGame: (playerId: number) => Promise<void>;
   removePlayerFromGame: (playerId: number) => Promise<void>;
-  updateGameName: () => Promise<void>;
+  updateGameDetails: () => Promise<void>;
   newPlayerName: string;
   setNewPlayerName: (name: string) => void;
   pokemonSearch: string;
@@ -35,3 +41,4 @@ export interface UseEditGameReturn {
   fetchPokemons: (search: string) => Promise<void>;
   handleCreatePlayer: () => Promise<void>;
 }
+

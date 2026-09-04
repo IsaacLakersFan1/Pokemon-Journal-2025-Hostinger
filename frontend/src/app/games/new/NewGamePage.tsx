@@ -4,16 +4,26 @@ import { PlayersList } from "./components/PlayersList";
 import { NewPlayerForm } from "./components/NewPlayerForm";
 import { CreateGameButton } from "./components/CreateGameButton";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 
 export function NewGamePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const {
     gameName,
     setGameName,
+    pokemonGame,
+    setPokemonGame,
+    notes,
+    setNotes,
     players,
     selectedPlayers,
     newPlayerName,
@@ -38,23 +48,30 @@ export function NewGamePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto max-w-4xl px-4 py-8">
       <div className="space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Crear Nuevo Juego</h1>
-          <p className="text-muted-foreground mt-2">
-            Configura tu nueva sesión de Pokemon Go
+          <h1 className="text-3xl font-bold tracking-tight">Nuevo Nuzlocke</h1>
+          <p className="mt-2 text-muted-foreground">
+            Arma el run con tus amigos: juego, reglas y entrenadores
           </p>
         </div>
 
-        <GameNameForm gameName={gameName} setGameName={setGameName} />
+        <GameNameForm
+          gameName={gameName}
+          setGameName={setGameName}
+          pokemonGame={pokemonGame}
+          setPokemonGame={setPokemonGame}
+          notes={notes}
+          setNotes={setNotes}
+        />
 
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Entrenadores</h2>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Agregar Entrenador
               </Button>
             </DialogTrigger>

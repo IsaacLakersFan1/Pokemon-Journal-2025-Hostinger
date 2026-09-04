@@ -5,13 +5,19 @@ import API_URL from "@/utils/apiConfig";
 import { toastError } from "@/hooks/useToastError";
 import { toastSuccess } from "@/hooks/useToastSuccess";
 import { UseDashboardReturn } from "../interfaces/useDashboard";
-import { Player, Event, Pokemon, CreateEventRequest, PlayerGameResponse, ShowdownMatchup } from "../interfaces/Dashboard";
+import {
+  Player,
+  Event,
+  Pokemon,
+  CreateEventRequest,
+  PlayerGameResponse,
+  ShowdownMatchup,
+} from "../interfaces/Dashboard";
 
 export function useDashboard(): UseDashboardReturn {
   const { gameId: gameIdParam } = useParams<{ gameId: string }>();
   const gameId = Number(gameIdParam);
-  
-  // State
+
   const [pokemonQuery, setPokemonQuery] = useState("");
   const [pokemonResults, setPokemonResults] = useState<Pokemon[]>([]);
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
@@ -20,23 +26,31 @@ export function useDashboard(): UseDashboardReturn {
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
   const [status, setStatus] = useState("Catched");
+  const [isShiny, setIsShiny] = useState(false);
+  const [isChamp, setIsChamp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [gameName, setGameName] = useState("");
+  const [pokemonGame, setPokemonGame] = useState<string | null>(null);
+  const [notes, setNotes] = useState<string | null>(null);
+  const [routeList, setRouteList] = useState<string | null>(null);
   const [matchups, setMatchups] = useState<ShowdownMatchup[]>([]);
 
   const { showToastError } = toastError();
   const { showToastSuccess } = toastSuccess();
 
-  // Fetch events
   const fetchEvents = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/events/game/${gameId}`, {
         withCredentials: true,
       });
       setEvents(response.data.events || []);
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Error al cargar eventos";
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Error al cargar eventos";
       showToastError(errorMessage);
     }
   };
@@ -46,25 +60,34 @@ export function useDashboard(): UseDashboardReturn {
       const response = await axios.get(`${API_URL}/api/games/${gameId}`, {
         withCredentials: true,
       });
-      setGameName(response.data.game?.name ?? "");
+      const game = response.data.game;
+      setGameName(game?.name ?? "");
+      setPokemonGame(game?.pokemonGame ?? null);
+      setNotes(game?.notes ?? null);
+      setRouteList(game?.routeList ?? null);
     } catch (error: unknown) {
-      const msg = error && typeof error === "object" && "response" in error
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-        : "Error al cargar el juego";
+      const msg =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Error al cargar el juego";
       showToastError(msg);
     }
   };
 
   const fetchShowdowns = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/showdowns/game/${gameId}`, {
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        `${API_URL}/api/showdowns/game/${gameId}`,
+        { withCredentials: true }
+      );
       setMatchups(response.data.matchups ?? []);
     } catch (error: unknown) {
-      const msg = error && typeof error === "object" && "response" in error
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-        : "Error al cargar showdowns";
+      const msg =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Error al cargar showdowns";
       showToastError(msg);
     }
   };
@@ -74,26 +97,34 @@ export function useDashboard(): UseDashboardReturn {
       const response = await axios.get(`${API_URL}/api/player-games/${gameId}`, {
         withCredentials: true,
       });
-      console.log('Players response:', response.data);
-      const playerDetails = response.data.players.map((playerGame: PlayerGameResponse) => playerGame.player);
+      const playerDetails = response.data.players.map(
+        (playerGame: PlayerGameResponse) => playerGame.player
+      );
       setPlayers(playerDetails);
-    } catch (error: any) {
-      console.error('Error fetching players:', error);
-      const errorMessage = error.response?.data?.message || "Error al cargar entrenadores";
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Error al cargar entrenadores";
       showToastError(errorMessage);
     }
   };
 
-  // Search Pokemon
   const searchPokemon = async (query: string) => {
     if (query.length >= 3) {
       try {
-        const response = await axios.get(`${API_URL}/api/pokemon/search?searchTerm=${query}`, {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          `${API_URL}/api/pokemon/search?searchTerm=${query}`,
+          { withCredentials: true }
+        );
         setPokemonResults(response.data);
-      } catch (error: any) {
-        const errorMessage = error.response?.data?.message || "Error al buscar Pokemon";
+      } catch (error: unknown) {
+        const errorMessage =
+          error && typeof error === "object" && "response" in error
+            ? (error as { response?: { data?: { message?: string } } }).response
+                ?.data?.message
+            : "Error al buscar Pokemon";
         showToastError(errorMessage);
       }
     } else {
@@ -101,12 +132,13 @@ export function useDashboard(): UseDashboardReturn {
     }
   };
 
-  // Create event
   const handleCreateEvent = async () => {
-    if (!selectedPokemon || !route || !nickname || !selectedPlayerId) {
-      showToastError("Por favor completa todos los campos");
+    if (!selectedPokemon || !route || !selectedPlayerId) {
+      showToastError("Completa Pokémon, ruta y entrenador");
       return;
     }
+
+    const finalNickname = nickname.trim() || selectedPokemon.name;
 
     setIsSubmitting(true);
     try {
@@ -114,10 +146,12 @@ export function useDashboard(): UseDashboardReturn {
         pokemonId: selectedPokemon.id,
         pokemonImage: selectedPokemon.image || "",
         route,
-        nickname,
+        nickname: finalNickname,
         playerId: selectedPlayerId,
         status,
         gameId,
+        isShiny: isShiny ? 1 : 0,
+        isChamp: isChamp ? 1 : 0,
       };
 
       await axios.post(`${API_URL}/api/events`, eventData, {
@@ -125,26 +159,29 @@ export function useDashboard(): UseDashboardReturn {
       });
 
       showToastSuccess("Evento creado exitosamente");
-      
-      // Reset form
+
       setSelectedPokemon(null);
       setPokemonQuery("");
       setRoute("");
       setNickname("");
       setSelectedPlayerId(null);
       setStatus("Catched");
-      
-      // Refresh events
+      setIsShiny(false);
+      setIsChamp(false);
+
       await fetchEvents();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Error al crear evento";
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Error al crear evento";
       showToastError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Effects
   useEffect(() => {
     if (gameId) {
       fetchGame();
@@ -163,7 +200,6 @@ export function useDashboard(): UseDashboardReturn {
   }, [pokemonQuery]);
 
   return {
-    // State
     pokemonQuery,
     setPokemonQuery,
     pokemonResults,
@@ -180,11 +216,19 @@ export function useDashboard(): UseDashboardReturn {
     setSelectedPlayerId,
     status,
     setStatus,
+    isShiny,
+    setIsShiny,
+    isChamp,
+    setIsChamp,
     isSubmitting,
     setIsSubmitting,
     events,
     setEvents,
     gameName,
+    pokemonGame,
+    notes,
+    routeList,
+    setRouteList,
     matchups,
     fetchEvents,
     fetchPlayers,

@@ -4,6 +4,7 @@ import API_URL from "@/utils/apiConfig";
 import { toastError } from "@/hooks/useToastError";
 import { UseGlobalPlayersReturn } from "../interfaces/useGlobalPlayers";
 import { GlobalPlayer } from "../interfaces/GlobalPlayers";
+import { pokemonImageUrl } from "@/utils/pokemonImage";
 
 export function useGlobalPlayers(): UseGlobalPlayersReturn {
   const [players, setPlayers] = useState<GlobalPlayer[]>([]);
@@ -19,26 +20,34 @@ export function useGlobalPlayers(): UseGlobalPlayersReturn {
         withCredentials: true,
       });
 
-      // El API devuelve un array directo de jugadores
       const playersData = response.data;
-      const formattedPlayers = playersData.map((player: any) => ({
-        id: player.id,
-        name: player.name,
-        pokemon: player.pokemon
-          ? {
-              name: player.pokemon.name,
-              image: `http://goc4840sk8cc4cws448osgoo.193.46.198.43.sslip.io/public/PokemonImages/${player.pokemon.image}.png`
-            }
-          : null,
-      }));
+      const formattedPlayers = playersData.map(
+        (player: {
+          id: number;
+          name: string;
+          pokemon?: { name: string; image?: string | null } | null;
+        }) => ({
+          id: player.id,
+          name: player.name,
+          pokemon: player.pokemon
+            ? {
+                name: player.pokemon.name,
+                image: pokemonImageUrl(player.pokemon.image),
+              }
+            : null,
+        })
+      );
 
       setPlayers(formattedPlayers);
       setError(null);
-    } catch (err: any) {
-      console.error('Error fetching global players:', err);
-      const errorMessage = err.response?.data?.message || "Error al cargar entrenadores";
-      setError(errorMessage);
-      showToastError(errorMessage);
+    } catch (err: unknown) {
+      const errorMessage =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Error al cargar entrenadores";
+      setError(errorMessage || "Error al cargar entrenadores");
+      showToastError(errorMessage || "Error al cargar entrenadores");
     } finally {
       setLoading(false);
     }

@@ -1,11 +1,9 @@
-interface GlobalPlayersHeaderProps {}
-
-export function GlobalPlayersHeader({}: GlobalPlayersHeaderProps) {
+export function GlobalPlayersHeader() {
   return (
     <div className="mb-8">
-      <h1 className="text-4xl font-extrabold text-gray-800">Entrenadores</h1>
-      <p className="text-gray-600 mt-2">
-        Todos los entrenadores registrados en el sistema
+      <h1 className="text-3xl font-bold tracking-tight">Entrenadores</h1>
+      <p className="mt-2 text-muted-foreground">
+        Perfiles compartidos: mismo nombre = mismas stats entre cuentas del grupo
       </p>
     </div>
   );

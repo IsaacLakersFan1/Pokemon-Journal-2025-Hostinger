@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Swords, Trophy, Star, Skull, ArrowRight, Crown } from "lucide-react";
 import API_URL from "@/utils/apiConfig";
 import axios from "axios";
+import { pokemonImageUrl } from "@/utils/pokemonImage";
 
 interface EventByGame {
   eventId: number;
@@ -90,7 +91,7 @@ export function PokemonDetailModal({
             <div className="flex items-center gap-4">
               {data.pokemon.image && (
                 <img
-                  src={`http://goc4840sk8cc4cws448osgoo.193.46.198.43.sslip.io/public/PokemonImages/${data.pokemon.image}.png`}
+                  src={pokemonImageUrl(data.pokemon.image)}
                   alt={data.pokemon.name}
                   className="w-24 h-24 object-contain"
                 />

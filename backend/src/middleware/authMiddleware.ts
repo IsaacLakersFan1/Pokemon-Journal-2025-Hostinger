@@ -1,30 +1,25 @@
-import { Request, Response, NextFunction } from 'express';
-import { AuthRequest } from './interfaces/authRequestUser';
-import jwt from 'jsonwebtoken';
+import { Response, NextFunction } from "express";
+import { AuthRequest } from "./interfaces/authRequestUser";
+import { COOKIE_NAME, verifyAuthToken } from "../utils/jwt";
 
-
-
-export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  const token = req.cookies.tokenPokemonJournal;
-  const JWT_SECRET = process.env.JWT_SECRET;
-
+export const authenticateJWT = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  const token = req.cookies[COOKIE_NAME];
 
   if (!token) {
-    res.status(401).json({ message: 'No token provided' });
-    return;
-  }
-
-  if (!JWT_SECRET) {
-    res.status(500).json({ message: 'JWT_SECRET is not defined' });
+    res.status(401).json({ message: "No hay sesión activa" });
     return;
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    const decoded = verifyAuthToken(token);
     req.user = decoded;
     next();
-  } catch (error) {
-    res.status(403).json({ message: 'Invalid token' });
+  } catch {
+    res.status(403).json({ message: "Sesión inválida o expirada" });
     return;
   }
 };

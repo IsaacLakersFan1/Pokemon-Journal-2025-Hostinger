@@ -6,12 +6,14 @@ import { toastError } from "@/hooks/useToastError";
 import { toastSuccess } from "@/hooks/useToastSuccess";
 import { Event } from "../interfaces/Dashboard";
 import { InformationPokedexCard } from "./InformationPokedexCard";
+import { pokemonImageUrl } from "@/utils/pokemonImage";
 import API_URL from "@/utils/apiConfig";
 import axios from "axios";
 
 interface EventCardProps {
   event: Event;
   onDelete: () => void;
+  onChange?: () => void;
 }
 
 const getTypeColor = (type: string): string => {
@@ -38,7 +40,7 @@ const getTypeColor = (type: string): string => {
   return typeColors[type] || "#808080";
 };
 
-export function EventCard({ event, onDelete }: EventCardProps) {
+export function EventCard({ event, onDelete, onChange }: EventCardProps) {
   const [currentStatus, setCurrentStatus] = useState(event.status);
   const [shiny, setShiny] = useState(event.isShiny);
   const [champ, setChamp] = useState(event.isChamp);
@@ -66,6 +68,7 @@ export function EventCard({ event, onDelete }: EventCardProps) {
       );
       setCurrentStatus(newStatus);
       showToastSuccess(`Estado actualizado a "${newStatus}" exitosamente.`);
+      onChange?.();
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Error al actualizar estado";
       showToastError(errorMessage);
@@ -90,6 +93,7 @@ export function EventCard({ event, onDelete }: EventCardProps) {
         setChamp(value);
         showToastSuccess(value ? 'Marcado como Campeón!' : 'Desmarcado como Campeón.');
       }
+      onChange?.();
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || `Error al actualizar ${attribute}`;
       showToastError(errorMessage);
@@ -178,7 +182,7 @@ export function EventCard({ event, onDelete }: EventCardProps) {
         <div>
           {event.pokemon.image && (
             <img
-              src={`http://goc4840sk8cc4cws448osgoo.193.46.198.43.sslip.io/public/PokemonImages/${event.pokemon.image}.png`}
+              src={pokemonImageUrl(event.pokemon.image, { shiny: !!shiny })}
               alt={event.pokemon.name}
               className="w-20 h-20 mx-auto object-contain mb-2"
             />

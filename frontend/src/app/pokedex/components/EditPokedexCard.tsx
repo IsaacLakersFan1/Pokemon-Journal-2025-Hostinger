@@ -9,6 +9,7 @@ import { toastError } from "@/hooks/useToastError";
 import { Pokemon } from "../interfaces/Pokedex";
 import axios from "axios";
 import API_URL from "@/utils/apiConfig";
+import { pokemonImageUrl } from "@/utils/pokemonImage";
 
 interface EditPokedexCardProps {
   isOpen: boolean;
@@ -98,7 +99,7 @@ export function EditPokedexCard({ isOpen, pokemon, onUpdate, onClose }: EditPoke
           {/* Image */}
           <div className="flex flex-col items-center space-y-2">
             <img
-              src={`http://goc4840sk8cc4cws448osgoo.193.46.198.43.sslip.io/public/PokemonImages/${pokemon.image}.png`}
+              src={pokemonImageUrl(pokemon.image)}
               alt={pokemon.name}
               className="w-24 h-24 object-contain"
               onError={(e) => {

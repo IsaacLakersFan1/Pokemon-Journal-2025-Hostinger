@@ -1,28 +1,31 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import prisma from "../utils/prismaClient";
-import { 
-  excludeDeletedGame, 
+import {
+  excludeDeletedGame,
   excludeDeletedPlayerGame,
-  excludeDeletedPlayer,
-  excludeDeletedEvent,
-  softDeleteGameData, 
+  softDeleteGameData,
+  softDeletePlayerGameData,
+  softDeleteEventData,
+  softDeleteShowdownData,
   updateGameData,
-  restoreGameData 
+  restoreGameData,
 } from "../utils/softDelete";
 
 interface AuthenticatedRequest extends Request {
-    user?: {
-      userId: number; // The type of `userId` that you'll get from the JWT payload
-    };
-  }
+  user?: {
+    userId: number;
+  };
+}
 
-// Create a new game
-export const createGame = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const { name, playerCount } = req.body;
-  const userId = req.user?.userId;  // Access the userId from the JWT payload
+export const createGame = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const { name, playerCount, pokemonGame, notes, routeList } = req.body;
+  const userId = req.user?.userId;
 
   if (!userId) {
-    res.status(400).json({ error: 'User not authenticated' });
+    res.status(400).json({ error: "User not authenticated" });
     return;
   }
 
@@ -31,116 +34,136 @@ export const createGame = async (req: AuthenticatedRequest, res: Response): Prom
       data: {
         name,
         playerCount,
-        userId,  // Associate the game with the authenticated user
+        userId,
+        pokemonGame: pokemonGame || null,
+        notes: notes || null,
+        routeList:
+          typeof routeList === "string"
+            ? routeList
+            : Array.isArray(routeList)
+              ? JSON.stringify(routeList)
+              : null,
       },
     });
 
-    res.status(201).json({ message: 'Game created successfully', game: newGame });
+    res.status(201).json({ message: "Game created successfully", game: newGame });
   } catch (error) {
-    console.log(error)
-    res.status(500).json({ error: 'Failed to create game' });
+    console.log(error);
+    res.status(500).json({ error: "Failed to create game" });
   }
 };
 
-// Soft Delete a game by ID
-export const deleteGame = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const deleteGame = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   const gameId = parseInt(req.params.id);
   const userId = req.user?.userId;
 
   if (!userId) {
-    res.status(400).json({ error: 'User not authenticated' });
+    res.status(400).json({ error: "User not authenticated" });
     return;
   }
 
   try {
-    // Check if the game exists, is not soft-deleted, and is associated with the user
     const game = await prisma.game.findFirst({
-      where: { 
+      where: {
         id: gameId,
         ...excludeDeletedGame(),
       },
     });
 
     if (!game) {
-      res.status(404).json({ error: 'Game not found or already deleted' });
+      res.status(404).json({ error: "Game not found or already deleted" });
       return;
     }
 
     if (game.userId !== userId) {
-      res.status(403).json({ error: 'You are not authorized to delete this game' });
+      res.status(403).json({ error: "You are not authorized to delete this game" });
       return;
     }
 
-    // Soft delete the game
-    await prisma.game.update({
-      where: { id: gameId },
-      data: softDeleteGameData(),
-    });
+    const now = softDeleteGameData();
+    await prisma.$transaction([
+      prisma.game.update({ where: { id: gameId }, data: now }),
+      prisma.playerGame.updateMany({
+        where: { gameId, deletedAt: null },
+        data: softDeletePlayerGameData(),
+      }),
+      prisma.event.updateMany({
+        where: { gameId, deletedAt: null },
+        data: softDeleteEventData(),
+      }),
+      prisma.showdown.updateMany({
+        where: { gameId, deletedAt: null },
+        data: softDeleteShowdownData(),
+      }),
+    ]);
 
-    res.status(200).json({ message: 'Game deleted successfully' });
+    res.status(200).json({ message: "Game deleted successfully" });
   } catch (error) {
-    console.error('Error deleting game:', error);
-    res.status(500).json({ error: 'Failed to delete game' });
+    console.error("Error deleting game:", error);
+    res.status(500).json({ error: "Failed to delete game" });
   }
 };
 
-// Restore soft-deleted game by ID
-export const restoreGame = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const restoreGame = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   const gameId = parseInt(req.params.id);
   const userId = req.user?.userId;
 
   if (!userId) {
-    res.status(400).json({ error: 'User not authenticated' });
+    res.status(400).json({ error: "User not authenticated" });
     return;
   }
 
   try {
-    // Check if the soft-deleted game exists and is associated with the user
     const game = await prisma.game.findFirst({
-      where: { 
+      where: {
         id: gameId,
         deletedAt: { not: null },
       },
     });
 
     if (!game) {
-      res.status(404).json({ error: 'Deleted game not found' });
+      res.status(404).json({ error: "Deleted game not found" });
       return;
     }
 
     if (game.userId !== userId) {
-      res.status(403).json({ error: 'You are not authorized to restore this game' });
+      res.status(403).json({ error: "You are not authorized to restore this game" });
       return;
     }
 
-    // Restore the game
     const restoredGame = await prisma.game.update({
       where: { id: gameId },
       data: restoreGameData(),
     });
 
-    res.status(200).json({ 
-      message: 'Game restored successfully',
+    res.status(200).json({
+      message: "Game restored successfully",
       game: restoredGame,
     });
   } catch (error) {
-    console.error('Error restoring game:', error);
-    res.status(500).json({ error: 'Failed to restore game' });
+    console.error("Error restoring game:", error);
+    res.status(500).json({ error: "Failed to restore game" });
   }
 };
 
-
-// Get all games for the authenticated user
-export const getAllGames = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getAllGames = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   const userId = req.user?.userId;
 
   if (!userId) {
-    res.status(400).json({ error: 'User not authenticated' });
+    res.status(400).json({ error: "User not authenticated" });
     return;
   }
 
   try {
-    // Fetch all non-deleted games for the authenticated user
     const games = await prisma.game.findMany({
       where: {
         userId,
@@ -148,28 +171,39 @@ export const getAllGames = async (req: AuthenticatedRequest, res: Response): Pro
       },
       include: {
         playerGames: {
+          where: excludeDeletedPlayerGame(),
           include: {
-            player: true,
+            player: {
+              select: { id: true, name: true },
+            },
           },
         },
-        events: true,
+        _count: {
+          select: {
+            events: { where: { deletedAt: null } },
+            showdowns: { where: { deletedAt: null } },
+          },
+        },
       },
+      orderBy: { updatedAt: "desc" },
     });
 
     res.status(200).json({ games });
   } catch (error) {
-    console.error('Error fetching games:', error);
-    res.status(500).json({ error: 'Failed to fetch games' });
+    console.error("Error fetching games:", error);
+    res.status(500).json({ error: "Failed to fetch games" });
   }
 };
 
-// Get a single game by ID
-export const getGameById = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getGameById = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   const gameId = parseInt(req.params.id);
   const userId = req.user?.userId;
 
   if (!userId) {
-    res.status(400).json({ error: 'User not authenticated' });
+    res.status(400).json({ error: "User not authenticated" });
     return;
   }
 
@@ -197,59 +231,74 @@ export const getGameById = async (req: AuthenticatedRequest, res: Response): Pro
     });
 
     if (!game) {
-      res.status(404).json({ error: 'Game not found' });
+      res.status(404).json({ error: "Game not found" });
       return;
     }
 
     res.status(200).json({ game });
   } catch (error) {
-    console.error('Error fetching game:', error);
-    res.status(500).json({ error: 'Failed to fetch game' });
+    console.error("Error fetching game:", error);
+    res.status(500).json({ error: "Failed to fetch game" });
   }
 };
 
-// Update game by ID
-export const updateGame = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const updateGame = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   const gameId = parseInt(req.params.id);
   const userId = req.user?.userId;
-  const { name, playerCount } = req.body;
+  const { name, playerCount, pokemonGame, notes, routeList } = req.body;
 
   if (!userId) {
-    res.status(400).json({ error: 'User not authenticated' });
+    res.status(400).json({ error: "User not authenticated" });
     return;
   }
 
   try {
-    // Check if the game exists, is not soft-deleted, and is associated with the user
     const game = await prisma.game.findFirst({
-      where: { 
+      where: {
         id: gameId,
         ...excludeDeletedGame(),
       },
     });
 
     if (!game) {
-      res.status(404).json({ error: 'Game not found or already deleted' });
+      res.status(404).json({ error: "Game not found or already deleted" });
       return;
     }
 
     if (game.userId !== userId) {
-      res.status(403).json({ error: 'You are not authorized to update this game' });
+      res.status(403).json({ error: "You are not authorized to update this game" });
       return;
     }
 
-    // Update the game with updatedAt timestamp
     const updatedGame = await prisma.game.update({
       where: { id: gameId },
-      data: updateGameData({ name, playerCount }),
+      data: updateGameData({
+        ...(name !== undefined ? { name } : {}),
+        ...(playerCount !== undefined ? { playerCount } : {}),
+        ...(pokemonGame !== undefined ? { pokemonGame } : {}),
+        ...(notes !== undefined ? { notes } : {}),
+        ...(routeList !== undefined
+          ? {
+              routeList:
+                typeof routeList === "string"
+                  ? routeList
+                  : Array.isArray(routeList)
+                    ? JSON.stringify(routeList)
+                    : null,
+            }
+          : {}),
+      }),
     });
 
-    res.status(200).json({ 
-      message: 'Game updated successfully',
+    res.status(200).json({
+      message: "Game updated successfully",
       game: updatedGame,
     });
   } catch (error) {
-    console.error('Error updating game:', error);
-    res.status(500).json({ error: 'Failed to update game' });
+    console.error("Error updating game:", error);
+    res.status(500).json({ error: "Failed to update game" });
   }
 };

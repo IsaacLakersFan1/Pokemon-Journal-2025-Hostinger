@@ -2,69 +2,57 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Player } from "../interfaces/Players";
+import { pokemonImageUrl, playerAvatarUrl } from "@/utils/pokemonImage";
 
 interface PlayerCardProps {
   player: Player;
   gameId: string;
 }
 
-export function PlayerCard({ player, gameId }: PlayerCardProps) {
+export function PlayerCard({ player }: PlayerCardProps) {
   const navigate = useNavigate();
 
   const handleSelectPlayer = () => {
-    navigate(`/games/${gameId}/players/${player.id}`);
+    // Shared trainer profile (name-merge stats live here)
+    navigate(`/players/${player.id}`);
   };
 
   return (
-    <Card className="hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300">
+    <Card className="border-2 transition-all duration-300 hover:border-blue-300 hover:shadow-xl">
       <CardContent className="p-6">
         <div className="flex flex-col items-center space-y-4">
-          {/* Player Avatar */}
           <div className="relative">
             <img
-              src="http://goc4840sk8cc4cws448osgoo.193.46.198.43.sslip.io/public/PokemonImages/player.png"
+              src={playerAvatarUrl()}
               alt={`${player.name} avatar`}
-              className="w-16 h-32 object-contain"
+              className="h-32 w-16 object-contain"
               onError={(e) => {
-                e.currentTarget.src = 'https://github.com/shadcn.png';
+                e.currentTarget.style.visibility = "hidden";
               }}
             />
           </div>
 
-          {/* Player Name */}
-          <h3 className="text-xl font-semibold text-gray-800 text-center">
-            {player.name}
-          </h3>
+          <h3 className="text-center text-xl font-semibold">{player.name}</h3>
 
-          {/* Pokémon Info */}
           {player.pokemon ? (
             <div className="flex flex-col items-center space-y-2">
               <img
-                src={player.pokemon.image}
+                src={pokemonImageUrl(player.pokemon.image)}
                 alt={player.pokemon.name}
-                className="w-24 h-24 object-contain"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://github.com/shadcn.png';
-                }}
+                className="h-24 w-24 object-contain"
               />
-              <span className="text-sm text-gray-600 font-medium">
+              <span className="text-sm font-medium text-muted-foreground">
                 {player.pokemon.name}
               </span>
             </div>
           ) : (
-            <div className="text-center">
-              <p className="text-sm text-gray-500 italic">
-                No Pokémon selected
-              </p>
-            </div>
+            <p className="text-center text-sm italic text-muted-foreground">
+              Sin Pokémon favorito
+            </p>
           )}
 
-          {/* Select Player Button */}
-          <Button
-            onClick={handleSelectPlayer}
-            className="w-full mt-4 bg-blue-600 hover:bg-blue-700 transition-colors"
-          >
-            Seleccionar Entrenador
+          <Button onClick={handleSelectPlayer} className="mt-4 w-full">
+            Ver stats del entrenador
           </Button>
         </div>
       </CardContent>

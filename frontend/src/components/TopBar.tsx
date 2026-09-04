@@ -1,199 +1,148 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
-import { toastError } from "@/hooks/useToastError";
 import { useSyncPokemon } from "@/hooks/useSyncPokemon";
-import { Database, RefreshCw, UserPlus } from "lucide-react";
+import { Database, RefreshCw, Search } from "lucide-react";
 import API_URL from "@/utils/apiConfig";
 import { useState } from "react";
+import { AccountSwitcher } from "@/components/auth/AccountSwitcher";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function TopBar() {
-  const { user, logout, isAuthenticated, accounts, switchAccount } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { showToastError } = toastError();
   const { syncPokemon, isLoading } = useSyncPokemon();
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isSwitching, setIsSwitching] = useState(false);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/login");
-    } catch (error) {
-      showToastError("Error al cerrar sesión");
-    }
-  };
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const handleNavigation = (path: string) => {
     navigate(path);
-  };
-
-  const handleAddAccount = () => {
-    navigate("/login");
-  };
-
-  const handleSwitchAccount = async (token: string | null) => {
-    if (!token) return;
-    setIsSwitching(true);
-    try {
-      await switchAccount(token);
-      window.location.reload();
-    } finally {
-      setIsSwitching(false);
-    }
   };
 
   if (!isAuthenticated) {
     return null;
   }
 
-  const handleDownloadDB = async () => {
+  const handleDownloadDB = () => {
     setIsDownloading(true);
     try {
-        // Directly open the download URL instead of using fetch
-        window.open(`${API_URL}/api/settings/download-db`, "_blank");
-        console.log("Downloading DB...", isDownloading);
-    } catch (error) {
-        console.error("Download error:", error);
+      window.open(`${API_URL}/api/settings/download-db`, "_blank");
+    } catch {
+      setDownloadError("No se pudo iniciar la descarga de la base de datos.");
     } finally {
-        setIsDownloading(false);
+      setIsDownloading(false);
     }
-
-  }
+  };
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className=" flex h-14 items-center justify-between px-6">
-        <div className="flex items-center space-x-8">
-          <h1 
-            className="text-xl font-bold cursor-pointer hover:text-blue-600 transition-colors"
-            onClick={() => handleNavigation("/games")}
-          >
-            Pokemon Journal
-          </h1>
-          <nav className="flex items-center space-x-1">
-            <Button
-              variant="ghost"
+    <>
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-14 items-center justify-between px-6">
+          <div className="flex items-center space-x-8">
+            <h1
+              className="cursor-pointer text-xl font-bold transition-colors hover:text-blue-600"
               onClick={() => handleNavigation("/games")}
-              className="text-sm font-medium"
             >
-              Juegos
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => handleNavigation("/pokedex")}
-              className="text-sm font-medium"
-            >
-              Pokédex
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => handleNavigation("/players")}
-              className="text-sm font-medium"
-            >
-              Entrenadores
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => handleNavigation("/guess-who")}
-              className="text-sm font-medium"
-            >
-              Guess Who
-            </Button>
-          </nav>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          {user?.role === "admin" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={syncPokemon}
-              disabled={isLoading}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              Sincronizar Pokemon
-            </Button>
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="" alt={user?.firstName} />
-                  <AvatarFallback>
-                    {user?.firstName?.charAt(0).toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
+              Pokemon Journal
+            </h1>
+            <nav className="flex items-center space-x-1">
+              <Button
+                variant="ghost"
+                onClick={() => handleNavigation("/games")}
+                className="text-sm font-medium"
+              >
+                Juegos
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                Cuentas
-              </DropdownMenuLabel>
-              {accounts.map((acc) => (
-                <DropdownMenuCheckboxItem
-                  key={acc.user.id}
-                  checked={acc.isCurrent}
-                  disabled={acc.isCurrent || isSwitching || !acc.token}
-                  onSelect={() => handleSwitchAccount(acc.token)}
+              <Button
+                variant="ghost"
+                onClick={() => handleNavigation("/pokedex")}
+                className="text-sm font-medium"
+              >
+                Pokédex
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => handleNavigation("/players")}
+                className="text-sm font-medium"
+              >
+                Entrenadores
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => handleNavigation("/search")}
+                className="text-sm font-medium"
+              >
+                <Search className="mr-1 h-4 w-4" />
+                Buscar
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => handleNavigation("/guess-who")}
+                className="text-sm font-medium"
+              >
+                Guess Who
+              </Button>
+            </nav>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {user?.role === "admin" && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={syncPokemon}
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
                 >
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">
-                      {acc.user.firstName} {acc.user.lastName}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {acc.user.email}
-                    </span>
-                  </div>
-                </DropdownMenuCheckboxItem>
-              ))}
-              <DropdownMenuItem onClick={handleAddAccount}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Agregar cuenta
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {user?.firstName} {user?.lastName}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDownloadDB}>
-                                    <Database className="mr-2 h-4 w-4" />
-                                    <span>Download DB</span>
-                                    <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
-                                </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleNavigation("/profile")}>
-                Perfil
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleNavigation("/settings")}>
-                Configuración
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                Cerrar sesión
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <RefreshCw
+                    className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+                  />
+                  Sincronizar Pokemon
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadDB}
+                  disabled={isDownloading}
+                  className="flex items-center gap-2"
+                >
+                  <Database className="h-4 w-4" />
+                  DB
+                </Button>
+              </>
+            )}
+            <AccountSwitcher />
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      <AlertDialog
+        open={!!downloadError}
+        onOpenChange={(open) => {
+          if (!open) setDownloadError(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error al descargar</AlertDialogTitle>
+            <AlertDialogDescription>{downloadError}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setDownloadError(null)}>
+              Entendido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

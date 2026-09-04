@@ -3,6 +3,10 @@ import { Player, Pokemon } from "./NewGame";
 export interface UseNewGameReturn {
   gameName: string;
   setGameName: (name: string) => void;
+  pokemonGame: string;
+  setPokemonGame: (value: string) => void;
+  notes: string;
+  setNotes: (value: string) => void;
   players: Player[];
   selectedPlayers: number[];
   setSelectedPlayers: (players: number[]) => void;

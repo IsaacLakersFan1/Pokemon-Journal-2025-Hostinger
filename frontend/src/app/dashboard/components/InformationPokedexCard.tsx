@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { pokemonImageUrl } from "@/utils/pokemonImage";
 
 interface Pokemon {
   id: number;
@@ -160,7 +161,7 @@ export function InformationPokedexCard({
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full blur-xl opacity-20"></div>
               <img
-                src={`http://goc4840sk8cc4cws448osgoo.193.46.198.43.sslip.io/public/PokemonImages/${pokemon.image}.png`}
+                src={pokemonImageUrl(pokemon.image)}
                 alt={pokemon.name}
                 className="relative w-64 h-64 mx-auto object-contain"
                 onError={(e) => {

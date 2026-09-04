@@ -12,9 +12,11 @@ import { GlobalPlayersPage } from "./app/global-players/GlobalPlayersPage";
 import { PlayerStatsPage } from "./app/player-stats/PlayerStatsPage";
 import { PokedexPage } from "./app/pokedex/PokedexPage";
 import { GuessWhoPage } from "./app/guess-who/GuessWhoPage";
+import { SearchPage } from "./app/search/SearchPage";
 import { Toaster } from "@/components/ui/toaster";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { PublicRoute } from "./components/auth/PublicRoute";
+import { AuthProvider } from "./components/auth/AuthProvider";
 import { TopBar } from "./components/TopBar";
 
 function App() {
@@ -22,111 +24,119 @@ function App() {
     <div className="w-full h-full">
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <BrowserRouter>
-          <Routes>
-            {/* Rutas públicas - solo accesibles sin autenticación */}
-            <Route
-              path="/login"
-              element={
-                <PublicRoute allowAuthenticated={true}>
-                  <LoginPage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <PublicRoute>
-                  <SignupPage />
-                </PublicRoute>
-              }
-            />
+          <AuthProvider>
+            <Routes>
+              <Route
+                path="/login"
+                element={
+                  <PublicRoute allowAuthenticated={true}>
+                    <LoginPage />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/signup"
+                element={
+                  <PublicRoute redirectTo="/games">
+                    <SignupPage />
+                  </PublicRoute>
+                }
+              />
 
-            {/* Rutas protegidas - requieren autenticación */}
-            <Route
-              path="/games"
-              element={
-                <ProtectedRoute>
-                  <TopBar />
-                  <GamePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/games/new"
-              element={
-                <ProtectedRoute>
-                  <TopBar />
-                  <NewGamePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/games/:gameId/edit"
-              element={
-                <ProtectedRoute>
-                  <TopBar />
-                  <EditGamePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/games/:gameId/dashboard"
-              element={
-                <ProtectedRoute>
-                  <TopBar />
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/games/:gameId/players"
-              element={
-                <ProtectedRoute>
-                  <TopBar />
-                  <PlayersPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/players"
-              element={
-                <ProtectedRoute>
-                  <TopBar />
-                  <GlobalPlayersPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/players/:playerId"
-              element={
-                <ProtectedRoute>
-                  <TopBar />
-                  <PlayerStatsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/pokedex"
-              element={
-                <ProtectedRoute>
-                  <TopBar />
-                  <PokedexPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/guess-who"
-              element={
-                <ProtectedRoute>
-                  <TopBar />
-                  <GuessWhoPage />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/games"
+                element={
+                  <ProtectedRoute>
+                    <TopBar />
+                    <GamePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/games/new"
+                element={
+                  <ProtectedRoute>
+                    <TopBar />
+                    <NewGamePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/games/:gameId/edit"
+                element={
+                  <ProtectedRoute>
+                    <TopBar />
+                    <EditGamePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/games/:gameId/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <TopBar />
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/games/:gameId/players"
+                element={
+                  <ProtectedRoute>
+                    <TopBar />
+                    <PlayersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/players"
+                element={
+                  <ProtectedRoute>
+                    <TopBar />
+                    <GlobalPlayersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/players/:playerId"
+                element={
+                  <ProtectedRoute>
+                    <TopBar />
+                    <PlayerStatsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pokedex"
+                element={
+                  <ProtectedRoute>
+                    <TopBar />
+                    <PokedexPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/guess-who"
+                element={
+                  <ProtectedRoute>
+                    <TopBar />
+                    <GuessWhoPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/search"
+                element={
+                  <ProtectedRoute>
+                    <TopBar />
+                    <SearchPage />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Ruta por defecto */}
-            <Route path="/" element={<Navigate to="/games" />} />
-          </Routes>
+              <Route path="/" element={<Navigate to="/games" />} />
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
         <Toaster />
       </ThemeProvider>

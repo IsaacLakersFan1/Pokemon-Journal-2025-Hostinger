@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Info, Edit } from "lucide-react";
 import { Pokemon } from "../interfaces/Pokedex";
+import { pokemonImageUrl } from "@/utils/pokemonImage";
 
 interface PokedexCardProps {
   pokemon: Pokemon;
@@ -56,7 +57,7 @@ export function PokedexCard({ pokemon, onInfoClick, onEditClick }: PokedexCardPr
           {/* Pokemon Image */}
           <div className="relative">
             <img
-              src={`http://goc4840sk8cc4cws448osgoo.193.46.198.43.sslip.io/public/PokemonImages/${pokemon.image}.png`}
+              src={pokemonImageUrl(pokemon.image)}
               alt={pokemon.name}
               className="w-36 h-36 object-contain"
               onError={(e) => {

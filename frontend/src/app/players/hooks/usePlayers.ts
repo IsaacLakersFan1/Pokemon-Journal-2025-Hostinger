@@ -5,6 +5,7 @@ import API_URL from "@/utils/apiConfig";
 import { toastError } from "@/hooks/useToastError";
 import { UsePlayersReturn } from "../interfaces/usePlayers";
 import { Player, PlayerGameResponse } from "../interfaces/Players";
+import { pokemonImageUrl } from "@/utils/pokemonImage";
 
 export function usePlayers(): UsePlayersReturn {
   const { gameId } = useParams<{ gameId: string }>();
@@ -34,18 +35,21 @@ export function usePlayers(): UsePlayersReturn {
         pokemon: p.player.pokemon
           ? {
               name: p.player.pokemon.name,
-              image: `http://goc4840sk8cc4cws448osgoo.193.46.198.43.sslip.io/public/PokemonImages/${p.player.pokemon.image}.png`
+              image: pokemonImageUrl(p.player.pokemon.image),
             }
           : null,
       }));
 
       setPlayers(formattedPlayers);
       setError(null);
-    } catch (err: any) {
-      console.error('Error fetching players:', err);
-      const errorMessage = err.response?.data?.message || "Error al cargar entrenadores";
-      setError(errorMessage);
-      showToastError(errorMessage);
+    } catch (err: unknown) {
+      const errorMessage =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data
+              ?.message
+          : "Error al cargar entrenadores";
+      setError(errorMessage || "Error al cargar entrenadores");
+      showToastError(errorMessage || "Error al cargar entrenadores");
     } finally {
       setLoading(false);
     }

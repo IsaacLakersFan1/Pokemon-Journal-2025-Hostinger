@@ -19,6 +19,7 @@ import API_URL from "@/utils/apiConfig";
 import axios from "axios";
 import { toastError } from "@/hooks/useToastError";
 import { toastSuccess } from "@/hooks/useToastSuccess";
+import { pokemonImageUrl } from "@/utils/pokemonImage";
 
 interface RegisterShowdownModalProps {
   open: boolean;
@@ -203,9 +204,17 @@ export function RegisterShowdownModal({
                         type="button"
                         variant={selected ? "default" : "outline"}
                         size="sm"
+                        className="h-auto gap-1.5 py-1.5"
                         onClick={() => togglePlayer1Event(e.id)}
                         disabled={!selected && player1EventIds.length >= EVENT_LIMIT}
                       >
+                        <img
+                          src={pokemonImageUrl(e.pokemon?.image, {
+                            shiny: !!e.isShiny,
+                          })}
+                          alt=""
+                          className="h-5 w-5 object-contain"
+                        />
                         {e.nickname || e.pokemon?.name || `#${e.id}`}
                       </Button>
                     );
@@ -227,9 +236,17 @@ export function RegisterShowdownModal({
                         type="button"
                         variant={selected ? "default" : "outline"}
                         size="sm"
+                        className="h-auto gap-1.5 py-1.5"
                         onClick={() => togglePlayer2Event(e.id)}
                         disabled={!selected && player2EventIds.length >= EVENT_LIMIT}
                       >
+                        <img
+                          src={pokemonImageUrl(e.pokemon?.image, {
+                            shiny: !!e.isShiny,
+                          })}
+                          alt=""
+                          className="h-5 w-5 object-contain"
+                        />
                         {e.nickname || e.pokemon?.name || `#${e.id}`}
                       </Button>
                     );

@@ -9,6 +9,8 @@ import { Player, Pokemon } from "../interfaces/NewGame";
 
 export function useNewGame(): UseNewGameReturn {
   const [gameName, setGameName] = useState("");
+  const [pokemonGame, setPokemonGame] = useState("");
+  const [notes, setNotes] = useState("");
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
   const [newPlayerName, setNewPlayerName] = useState("");
@@ -94,6 +96,8 @@ export function useNewGame(): UseNewGameReturn {
         {
           name: gameName,
           playerCount: selectedPlayers.length,
+          pokemonGame: pokemonGame.trim() || null,
+          notes: notes.trim() || null,
         },
         { withCredentials: true }
       );
@@ -140,6 +144,10 @@ export function useNewGame(): UseNewGameReturn {
   return {
     gameName,
     setGameName,
+    pokemonGame,
+    setPokemonGame,
+    notes,
+    setNotes,
     players,
     selectedPlayers,
     setSelectedPlayers,

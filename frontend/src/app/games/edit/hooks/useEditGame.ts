@@ -16,6 +16,8 @@ export function useEditGame(): UseEditGameReturn {
 
   const [game, setGame] = useState<GameWithPlayers | null>(null);
   const [gameName, setGameName] = useState("");
+  const [pokemonGame, setPokemonGame] = useState("");
+  const [notes, setNotes] = useState("");
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPlayerName, setNewPlayerName] = useState("");
@@ -34,6 +36,8 @@ export function useEditGame(): UseEditGameReturn {
       const gameData = response.data.game as GameWithPlayers;
       setGame(gameData);
       setGameName(gameData.name);
+      setPokemonGame(gameData.pokemonGame ?? "");
+      setNotes(gameData.notes ?? "");
     } catch (error: unknown) {
       const message =
         error && typeof error === "object" && "response" in error
@@ -152,15 +156,20 @@ export function useEditGame(): UseEditGameReturn {
     }
   };
 
-  const updateGameName = async () => {
+  const updateGameDetails = async () => {
     if (!gameId || !game) return;
     try {
       await axios.put(
         `${API_URL}/api/games/${gameId}`,
-        { name: gameName, playerCount: game.playerGames.length },
+        {
+          name: gameName,
+          playerCount: game.playerGames.length,
+          pokemonGame: pokemonGame.trim() || null,
+          notes: notes.trim() || null,
+        },
         { withCredentials: true }
       );
-      showToastSuccess("Nombre del juego actualizado");
+      showToastSuccess("Run actualizado");
       await fetchGame();
     } catch (error: unknown) {
       const message =
@@ -189,6 +198,10 @@ export function useEditGame(): UseEditGameReturn {
     game,
     gameName,
     setGameName,
+    pokemonGame,
+    setPokemonGame,
+    notes,
+    setNotes,
     playersInGame,
     allPlayers,
     loading,
@@ -196,7 +209,7 @@ export function useEditGame(): UseEditGameReturn {
     fetchAllPlayers,
     addPlayerToGame,
     removePlayerFromGame,
-    updateGameName,
+    updateGameDetails,
     newPlayerName,
     setNewPlayerName,
     pokemonSearch,

@@ -8,7 +8,7 @@ export interface User {
 
 export interface StoredAccount {
   userId: number;
-  token: string | null;
+  token: string;
   user: User;
 }
 
@@ -23,9 +23,12 @@ export interface UseAuthReturn {
   loading: boolean;
   isAuthenticated: boolean;
   accounts: DisplayAccount[];
-  logout: () => void;
+  /** Returns true if another stored account became active after logout. */
+  logout: () => Promise<boolean>;
   checkAuth: () => Promise<void>;
   addAccount: (token: string, user: User) => void;
   removeAccount: (userId: number) => void;
-  switchAccount: (token: string) => Promise<void>;
+  switchAccount: (token: string) => Promise<User>;
+  error: string | null;
+  clearError: () => void;
 }
