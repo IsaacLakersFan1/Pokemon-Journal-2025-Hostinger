@@ -136,13 +136,13 @@ export function DashboardPage() {
               </Dialog>
             </div>
 
-            <GraveyardSection events={events} />
-
             <EventsByPlayer
               events={events}
               players={players}
               onRefresh={fetchEvents}
             />
+
+            <GraveyardSection events={events} />
           </TabsContent>
 
           <TabsContent value="routes" className="mt-6">
